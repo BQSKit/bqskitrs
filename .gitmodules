@@ -1,0 +1,3 @@
+[submodule "ceres/ceres-sys/ceres-solver"]
+	path = ceres/ceres-sys/ceres-solver
+	url = https://github.com/ceres-solver/ceres-solver.git

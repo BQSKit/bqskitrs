@@ -20,8 +20,8 @@ use crate::utils::{
 //#[cfg(any(feature = "ceres", feature = "bfgs"))]
 //use crate::solvers::{BfgsJacSolver, CeresJacSolver, Solver};
 
-//#[cfg(any(feature = "ceres", feature = "bfgs"))]
-//mod solvers;
+#[cfg(any(feature = "ceres", feature = "bfgs"))]
+mod minimizers;
 
 pub type PySquareMatrix = PyArray2<Complex64>;
 

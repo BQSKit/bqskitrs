@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 
 use numpy::{PyArray1, PyArray2};
 
-#[pyclass(name = "BFGS_Jac_SolverNative", module = "bqskitrs")]
+#[pyclass(name = "LBFGSMinimizerNative", module = "bqskitrs")]
 struct PyBfgsJacSolver {
     size: usize,
     #[pyo3(get)]
@@ -13,6 +13,9 @@ struct PyBfgsJacSolver {
 #[pymethods]
 impl PyBfgsJacSolver {
     #[new]
+    /// Create a new L-BFGS Minimizer
+    /// Args:
+    ///   memoryize(int): The amount of memory to give L-BFGS in MB. 
     fn new(memory_size: Option<usize>) -> Self {
         if let Some(size) = memory_size {
             PyBfgsJacSolver {
@@ -27,13 +30,13 @@ impl PyBfgsJacSolver {
         }
     }
 
-    fn solve_for_unitary(
+    fn minimize(
         &self,
         py: Python,
-        circuit: PyObject,
-        options: PyObject,
+        cost_fn: PyObject,
         x0: Option<PyObject>,
-    ) -> PyResult<(Py<PySquareMatrix>, Py<PyArray1<f64>>)> {
+    ) -> PyResult<Py<PyArray1<f64>>> {
+
         let u = options.getattr(py, "target")?;
         let (circ, constant_gates) = match circuit.extract::<Py<PyGateWrapper>>(py) {
             Ok(c) => {

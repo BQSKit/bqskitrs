@@ -3,10 +3,8 @@ mod gates;
 #[cfg(feature = "python")]
 mod python;
 #[cfg(any(feature = "ceres", feature = "bfgs"))]
-mod solvers;
+mod minimizers;
 mod unitary_builder;
-//mod tensor_network;
-mod instantiator;
 mod utils;
 
 #[cfg(feature = "accelerate")]

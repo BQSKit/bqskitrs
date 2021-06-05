@@ -10,17 +10,27 @@ pub use self::bfgs::BfgsJacSolver;
 #[cfg(feature = "ceres")]
 pub use self::ceres::CeresJacSolver;
 
+#[cfg(feature = "bfgs")]
+mod cost_fn;
+#[cfg(feature = "ceres")]
+mod residual_fn;
+
+#[cfg(feature = "bfgs")]
+pub use cost_fn::*;
+#[cfg(feature = "ceres")]
+pub use residual_fn::*;
+
 use enum_dispatch::enum_dispatch;
 use squaremat::SquareMatrix;
 
 #[enum_dispatch]
-pub trait Solver {
-    fn solve_for_unitary(
+pub trait Minimzer {
+    type CostFunctionTy: CostFn;
+    fn minimize(
         &self,
-        circ: &Circuit,
-        unitary: &SquareMatrix,
-        x0: Option<Vec<f64>>,
-    ) -> (SquareMatrix, Vec<f64>);
+        cost_fn: Self::CostFunctionTy,
+        x0: Vec<f64>,
+    ) -> Vec<f64>;
 }
 
 #[enum_dispatch(Solver)]

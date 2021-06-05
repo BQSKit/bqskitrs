@@ -1,0 +1,104 @@
+[package]
+name = "bqskitrs"
+version = "0.1.0"
+authors = ["Ethan Smith <ethanhs@berkeley.edu>"]
+license = "LGPL-2.1 AND BSD-3-Clause"
+edition = "2018"
+build = "build.rs"
+publish = false
+include = [
+    "src/**/*",
+    "LICENSE",
+    "README.md",
+    "build.rs",
+    "Dockerfile",
+    "pyproject.toml",
+    "test-requirements.txt",
+    "squaremat/**/*",
+    "ceres/**/*",
+]
+
+[features]
+static = [
+    "openblas-src",
+    "blas-src/openblas",
+    "openblas-src/static",
+    "openblas-src/cblas",
+    "squaremat/openblas-static",
+    "ceres/static",
+]
+default = [
+    "openblas-src",
+    "blas-src/openblas",
+    "openblas-src/system",
+    "openblas-src/cblas",
+    "squaremat/openblas-system",
+    "ceres",
+    "bfgs",
+]
+accelerate = ["accelerate-src", "blas-src/accelerate", "squaremat/accelerate"]
+mkl = ["intel-mkl-src", "blas-src/intel-mkl", "squaremat/mkl"]
+python = ["numpy"]
+bfgs = ["nlopt"]
+
+[dependencies]
+num-complex = { version = "0.4", features = ["serde"] }
+ndarray = { version = "0.15", features = ["blas"] }
+blas-src = { version = "0.8", default-features = false }
+openblas-src = { version = "0.10", default-features = false, optional = true }
+accelerate-src = { version = "0.3", optional = true }
+intel-mkl-src = { version = "0.5", optional = true }
+enum_dispatch = "0.3"
+numpy = { version = "0.13", optional = true }
+libc = "0.2"
+num-traits = "0.2"
+better-panic = "0.2"
+squaremat = { path = "./squaremat" }
+md5 = "0.7"
+rand = "0.8"
+nlopt = { version = "0.5", optional = true }
+ceres = { path = "./ceres", optional = true }
+itertools = "0.10"
+
+[dependencies.pyo3]
+version = "0.13"
+features = ["extension-module"]
+
+[patch.crates-io]
+numpy = { git = "https://github.com/ethanhs/rust-numpy", branch = "patch-1" }
+
+[lib]
+name = "bqskitrs"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+debug = true
+
+[package.metadata.maturin]
+classifier = [
+    "Programming Language :: Python",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Science/Research',
+    'Topic :: Software Development :: Compilers',
+]
+
+[package.metadata.vcpkg]
+git = "https://github.com/microsoft/vcpkg"
+rev = "2020.06"
+
+[package.metadata.vcpkg.target]
+x86_64-pc-windows-msvc = { triplet = "x64-windows-static-md", install = [
+    "ceres",
+    "eigen3",
+    "openblas",
+    "glog",
+    "gflags",
+] }

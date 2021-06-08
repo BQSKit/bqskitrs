@@ -36,7 +36,7 @@ impl UnitaryBuilder {
         )
     }
 
-    pub fn apply_right(&mut self, utry: SquareMatrix, location: Vec<usize>, inverse: bool) {
+    pub fn apply_right(&mut self, utry: SquareMatrix, location: &Vec<usize>, inverse: bool) {
         let mut left_perm = location.iter();
         let mut mid_perm = (0..self.size).filter(|x| !location.contains(&x));
         let mut right_perm = (0..self.size).map(|x| x + self.size);
@@ -70,7 +70,7 @@ impl UnitaryBuilder {
             .into_dyn();
     }
 
-    pub fn apply_left(&mut self, utry: SquareMatrix, location: Vec<usize>, inverse: bool) {
+    pub fn apply_left(&mut self, utry: SquareMatrix, location: &Vec<usize>, inverse: bool) {
         let left_perm = 0..self.size;
         let mid_perm = left_perm.clone().filter_map(|x| {
             if location.contains(&x) {
@@ -110,7 +110,7 @@ impl UnitaryBuilder {
             .into_dyn();
     }
 
-    pub fn calc_env_matrix(&self, location: Vec<usize>) -> Array2<Complex64> {
+    pub fn calc_env_matrix(&self, location: &Vec<usize>) -> Array2<Complex64> {
         let mut left_perm: Vec<usize> = (0..self.size).filter(|x| !location.contains(x)).collect();
         let left_perm_copy = left_perm.clone();
         let left_extension = left_perm_copy.iter().map(|x| x + self.size);

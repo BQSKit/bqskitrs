@@ -1,6 +1,10 @@
 use squaremat::SquareMatrix;
 
-use crate::{circuit::Circuit, gates::{Gradient, Unitary}, utils::{matrix_distance_squared, matrix_distance_squared_jac}};
+use crate::{
+    circuit::Circuit,
+    gates::{Gradient, Unitary},
+    utils::{matrix_distance_squared, matrix_distance_squared_jac},
+};
 
 use enum_dispatch::enum_dispatch;
 
@@ -11,7 +15,8 @@ pub trait CostFn {
 }
 
 impl<T> CostFn for Box<T>
-where T: CostFn,
+where
+    T: CostFn,
 {
     fn get_cost(&self, params: &[f64]) -> f64 {
         CostFn::get_cost(self, params)
@@ -39,19 +44,23 @@ impl CostFn for HilbertSchmidtCostFn {
 
 impl DifferentiableCostFn for HilbertSchmidtCostFn {
     fn get_grad(&self, params: &[f64]) -> Vec<f64> {
-        let (m, j) = self.circ.get_utry_and_grad(params, &self.circ.constant_gates);
+        let (m, j) = self
+            .circ
+            .get_utry_and_grad(params, &self.circ.constant_gates);
         matrix_distance_squared_jac(&self.target, &m, j).1
     }
 
     fn get_cost_and_grad(&self, params: &[f64]) -> (f64, Vec<f64>) {
-        let (m, j) = self.circ.get_utry_and_grad(params, &self.circ.constant_gates);
+        let (m, j) = self
+            .circ
+            .get_utry_and_grad(params, &self.circ.constant_gates);
         matrix_distance_squared_jac(&self.target, &m, j)
     }
 }
 
 pub enum CostFunction {
     HilbertSchmidt(HilbertSchmidtCostFn),
-    Dynamic(Box<dyn DifferentiableCostFn>)
+    Dynamic(Box<dyn DifferentiableCostFn>),
 }
 
 impl CostFn for CostFunction {

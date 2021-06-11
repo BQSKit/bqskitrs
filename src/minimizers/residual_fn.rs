@@ -1,7 +1,11 @@
 use ndarray::Array2;
 use squaremat::SquareMatrix;
 
-use crate::{circuit::Circuit, gates::{Gradient, Unitary}, utils::{matrix_distance_squared, matrix_residuals, matrix_residuals_jac}};
+use crate::{
+    circuit::Circuit,
+    gates::{Gradient, Unitary},
+    utils::{matrix_distance_squared, matrix_residuals, matrix_residuals_jac},
+};
 
 use enum_dispatch::enum_dispatch;
 
@@ -15,7 +19,8 @@ pub trait ResidualFn: CostFn {
 }
 
 impl<T> ResidualFn for Box<T>
-where T: ResidualFn + Sized,
+where
+    T: ResidualFn + Sized,
 {
     fn get_residuals(&self, params: &[f64]) -> Vec<f64> {
         ResidualFn::get_residuals(self, params)
@@ -48,8 +53,7 @@ impl CostFn for HilbertSchmidtResidualFn {
 
 impl ResidualFn for HilbertSchmidtResidualFn {
     fn get_residuals(&self, params: &[f64]) -> Vec<f64> {
-        let m = self.circ.get_utry(params
-            , &self.circ.constant_gates);
+        let m = self.circ.get_utry(params, &self.circ.constant_gates);
         matrix_residuals(&self.target, &m, &self.eye)
     }
 
@@ -60,14 +64,16 @@ impl ResidualFn for HilbertSchmidtResidualFn {
 
 impl DifferentiableResidualFn for HilbertSchmidtResidualFn {
     fn get_grad(&self, params: &[f64]) -> Array2<f64> {
-        let (m, j) = self.circ.get_utry_and_grad(params, &self.circ.constant_gates);
+        let (m, j) = self
+            .circ
+            .get_utry_and_grad(params, &self.circ.constant_gates);
         matrix_residuals_jac(&self.target, &m, &j)
     }
 }
 
 pub enum ResidualFunction {
     HilbertSchmidt(HilbertSchmidtResidualFn),
-    Dynamic(Box<dyn DifferentiableResidualFn>)
+    Dynamic(Box<dyn DifferentiableResidualFn>),
 }
 
 impl CostFn for ResidualFunction {

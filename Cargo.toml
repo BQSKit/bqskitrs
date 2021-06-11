@@ -38,7 +38,6 @@ default = [
 ]
 accelerate = ["accelerate-src", "blas-src/accelerate", "squaremat/accelerate"]
 mkl = ["intel-mkl-src", "blas-src/intel-mkl", "squaremat/mkl"]
-python = ["numpy"]
 bfgs = ["nlopt"]
 
 [dependencies]
@@ -49,7 +48,7 @@ openblas-src = { version = "0.10", default-features = false, optional = true }
 accelerate-src = { version = "0.3", optional = true }
 intel-mkl-src = { version = "0.5", optional = true }
 enum_dispatch = "0.3"
-numpy = { version = "0.13", optional = true }
+numpy = { version = "0.13" }
 libc = "0.2"
 num-traits = "0.2"
 better-panic = "0.2"

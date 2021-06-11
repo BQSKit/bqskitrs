@@ -1,13 +1,18 @@
-use num_complex::Complex64;
 use pyo3::prelude::*;
 
-use numpy::{PyArray1, PyArray2};
+use numpy::PyArray1;
+use pyo3::types::PyTuple;
+
+use crate::minimizers::BfgsJacSolver;
+use crate::minimizers::CostFunction;
+use crate::minimizers::Minimizer;
+use crate::minimizers::Minimzer;
+
+use pyo3::exceptions::PyTypeError;
 
 #[pyclass(name = "LBFGSMinimizerNative", module = "bqskitrs")]
 struct PyBfgsJacSolver {
     size: usize,
-    #[pyo3(get)]
-    distance_metric: String,
 }
 
 #[pymethods]
@@ -15,53 +20,24 @@ impl PyBfgsJacSolver {
     #[new]
     /// Create a new L-BFGS Minimizer
     /// Args:
-    ///   memoryize(int): The amount of memory to give L-BFGS in MB. 
+    ///   memorysize(int): The amount of memory to give L-BFGS in MB.
     fn new(memory_size: Option<usize>) -> Self {
         if let Some(size) = memory_size {
-            PyBfgsJacSolver {
-                size,
-                distance_metric: String::from("Frobenius"),
-            }
+            PyBfgsJacSolver { size }
         } else {
-            PyBfgsJacSolver {
-                size: 10,
-                distance_metric: String::from("Frobenius"),
-            }
+            PyBfgsJacSolver { size: 10 }
         }
     }
 
-    fn minimize(
-        &self,
-        py: Python,
-        cost_fn: PyObject,
-        x0: Option<PyObject>,
-    ) -> PyResult<Py<PyArray1<f64>>> {
-
-        let u = options.getattr(py, "target")?;
-        let (circ, constant_gates) = match circuit.extract::<Py<PyGateWrapper>>(py) {
-            Ok(c) => {
-                let pygate = c.as_ref(py).try_borrow().unwrap();
-                (pygate.gate.clone(), pygate.constant_gates.clone())
-            }
-            Err(_) => {
-                let mut constant_gates = Vec::new();
-                let gate = object_to_gate(&circuit, &mut constant_gates, py)?;
-                (gate, constant_gates)
-            }
-        };
-        let unitary =
-            SquareMatrix::from_ndarray(u.extract::<&PySquareMatrix>(py)?.to_owned_array());
-        let x0_rust = if let Some(x) = x0 {
-            Some(x.extract::<Vec<f64>>(py)?)
-        } else {
-            None
-        };
+    fn minimize(&self, py: Python, cost_fn: PyObject, x0: PyObject) -> PyResult<Py<PyArray1<f64>>> {
+        let x0_rust = x0.extract::<Vec<f64>>(py)?;
         let solv = BfgsJacSolver::new(self.size);
-        let (mat, x0) = solv.solve_for_unitary(&circ, &constant_gates, &unitary, x0_rust);
-        Ok((
-            PySquareMatrix::from_array(py, &mat.into_ndarray()).to_owned(),
-            PyArray1::from_vec(py, x0).to_owned(),
-        ))
+        let cost_fun = match cost_fn.extract::<CostFunction>(py) {
+            Ok(fun) => Ok(fun),
+            Err(err) => Err(PyTypeError::new_err(err.to_string())),
+        }?;
+        let x = solv.minimize(cost_fun, x0_rust);
+        Ok(PyArray1::from_vec(py, x).to_owned())
     }
 
     pub fn __reduce__(slf: PyRef<Self>) -> PyResult<(PyObject, PyObject)> {

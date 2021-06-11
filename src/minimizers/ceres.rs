@@ -28,12 +28,8 @@ impl Minimzer for CeresJacSolver {
             }
         };
         let mut x = x0;
-        self.solver.solve(
-            &mut cost_fun,
-            &mut x,
-            cost_fn.num_residuals(),
-            100 * i,
-        );
+        self.solver
+            .solve(&mut cost_fun, &mut x, cost_fn.num_residuals(), 100 * i);
         x
     }
 }

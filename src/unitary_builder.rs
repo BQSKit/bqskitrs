@@ -36,7 +36,7 @@ impl UnitaryBuilder {
         )
     }
 
-    pub fn apply_right(&mut self, utry: SquareMatrix, location: &Vec<usize>, inverse: bool) {
+    pub fn apply_right(&mut self, utry: &SquareMatrix, location: &Vec<usize>, inverse: bool) {
         let mut left_perm = location.iter();
         let mut mid_perm = (0..self.size).filter(|x| !location.contains(&x));
         let mut right_perm = (0..self.size).map(|x| x + self.size);
@@ -45,7 +45,7 @@ impl UnitaryBuilder {
         let unitary = if inverse {
             utry.H().into_ndarray()
         } else {
-            utry.into_ndarray()
+            utry.clone().into_ndarray()
         };
         let mut perm = vec![];
         perm.extend(left_perm);
@@ -70,7 +70,7 @@ impl UnitaryBuilder {
             .into_dyn();
     }
 
-    pub fn apply_left(&mut self, utry: SquareMatrix, location: &Vec<usize>, inverse: bool) {
+    pub fn apply_left(&mut self, utry: &SquareMatrix, location: &Vec<usize>, inverse: bool) {
         let left_perm = 0..self.size;
         let mid_perm = left_perm.clone().filter_map(|x| {
             if location.contains(&x) {
@@ -86,7 +86,7 @@ impl UnitaryBuilder {
         let unitary = if inverse {
             utry.H().into_ndarray()
         } else {
-            utry.into_ndarray()
+            utry.clone().into_ndarray()
         };
         let mut perm = vec![];
         perm.extend(left_perm);

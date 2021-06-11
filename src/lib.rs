@@ -1,9 +1,9 @@
 mod circuit;
 mod gates;
-#[cfg(feature = "python")]
-mod python;
 #[cfg(any(feature = "ceres", feature = "bfgs"))]
 mod minimizers;
+mod permutation_matrix;
+mod python;
 mod unitary_builder;
 mod utils;
 

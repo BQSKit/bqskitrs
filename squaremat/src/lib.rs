@@ -1,5 +1,5 @@
 use cblas::*;
-use ndarray::Array2;
+use ndarray::{s, Array2, Zip};
 
 use num_complex::Complex64;
 
@@ -121,7 +121,7 @@ impl SquareMatrix {
         out
     }
 
-    pub fn kron(&mut self, other: &SquareMatrix) -> SquareMatrix {
+    pub fn kron(&self, other: &SquareMatrix) -> SquareMatrix {
         let row_a = self.size;
         let row_b = other.size;
         let mut out = SquareMatrix::zeros(row_a * row_b);
@@ -210,6 +210,11 @@ impl SquareMatrix {
             Array2::from_shape_vec((self.size, self.size), rev).unwrap(),
             Array2::from_shape_vec((self.size, self.size), imv).unwrap(),
         )
+    }
+
+    pub fn swap_rows(&mut self, idx_a: usize, idx_b: usize) {
+        let (row_a, row_b) = self.data.multi_slice_mut((s![idx_a, ..], s![idx_b, ..]));
+        Zip::from(row_a).and(row_b).for_each(std::mem::swap);
     }
 }
 

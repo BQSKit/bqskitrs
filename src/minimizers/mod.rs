@@ -21,19 +21,14 @@ pub use cost_fn::*;
 pub use residual_fn::*;
 
 use enum_dispatch::enum_dispatch;
-use squaremat::SquareMatrix;
 
 #[enum_dispatch]
 pub trait Minimzer {
     type CostFunctionTy: CostFn;
-    fn minimize(
-        &self,
-        cost_fn: Self::CostFunctionTy,
-        x0: Vec<f64>,
-    ) -> Vec<f64>;
+    fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64>;
 }
 
-#[enum_dispatch(Solver)]
+#[enum_dispatch(Minimizer)]
 pub enum Minimizer {
     #[cfg(feature = "bfgs")]
     Bfgs(BfgsJacSolver),

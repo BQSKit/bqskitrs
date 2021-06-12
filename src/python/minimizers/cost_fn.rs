@@ -1,6 +1,11 @@
-use crate::minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn};
-use numpy::PyArray1;
+use crate::{
+    circuit::Circuit,
+    minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn},
+};
+use num_complex::Complex64;
+use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
+use squaremat::SquareMatrix;
 
 struct PyCostFn {
     cost_fn: PyObject,
@@ -42,9 +47,32 @@ impl DifferentiableCostFn for PyCostFn {
     }
 }
 
-#[pyclass(name = "HilbertSchmidtCostFunction", module = "bqskitrs")]
-struct PyHilberSchmidtCostFn {
+#[pyclass(name = "HilbertSchmidtCostFunction", subclass, module = "bqskitrs")]
+pub struct PyHilberSchmidtCostFn {
     cost_fn: HilbertSchmidtCostFn,
+}
+
+#[pymethods]
+impl PyHilberSchmidtCostFn {
+    #[new]
+    pub fn new(circ: Circuit, target_matrix: &PyArray2<Complex64>) -> Self {
+        let target = SquareMatrix::from_ndarray(target_matrix.to_owned_array());
+        PyHilberSchmidtCostFn {
+            cost_fn: HilbertSchmidtCostFn::new(circ, target),
+        }
+    }
+
+    pub fn get_cost(&self, _py: Python, params: Vec<f64>) -> f64 {
+        self.cost_fn.get_cost(&params)
+    }
+
+    pub fn get_grad(&self, _py: Python, params: Vec<f64>) -> Vec<f64> {
+        self.cost_fn.get_grad(&params)
+    }
+
+    pub fn get_cost_and_grad(&self, _py: Python, params: Vec<f64>) -> (f64, Vec<f64>) {
+        self.cost_fn.get_cost_and_grad(&params)
+    }
 }
 
 fn is_cost_fn_obj<'a>(obj: &'a PyAny) -> PyResult<bool> {
@@ -66,7 +94,9 @@ impl<'source> FromPyObject<'source> for CostFunction {
         let gil = Python::acquire_gil();
         let py = gil.python();
         match ob.extract::<Py<PyHilberSchmidtCostFn>>() {
-            Ok(fun) => Ok(CostFunction::HilbertSchmidt(fun.try_borrow(py)?.cost_fn)),
+            Ok(fun) => Ok(CostFunction::HilbertSchmidt(
+                fun.try_borrow(py)?.cost_fn.clone(),
+            )),
             Err(..) => {
                 if is_cost_fn_obj(ob)? {
                     let fun = PyCostFn::new(ob.into());

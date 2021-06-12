@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-use super::{CostFunction, DifferentiableCostFn, Minimzer};
+use super::{CostFunction, DifferentiableCostFn, Minimizer};
 
 use crate::minimizers::CostFn;
 use nlopt::*;
@@ -15,7 +15,7 @@ impl BfgsJacSolver {
     }
 }
 
-impl Minimzer for BfgsJacSolver {
+impl Minimizer for BfgsJacSolver {
     type CostFunctionTy = CostFunction;
     fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64> {
         let i = x0.len();

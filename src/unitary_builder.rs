@@ -16,10 +16,14 @@ pub struct UnitaryBuilder {
 impl UnitaryBuilder {
     pub fn new(size: usize, radixes: Vec<usize>) -> Self {
         let dim = radixes.iter().product();
+        let mut tensor = Array2::<Complex64>::eye(dim).into_dyn();
+        tensor = tensor
+            .into_shape([&radixes[..], &radixes[..]].concat())
+            .unwrap();
         UnitaryBuilder {
             size,
             radixes,
-            tensor: Array2::<Complex64>::eye(2).into_dyn(),
+            tensor,
             num_params: 0,
             dim,
         }
@@ -37,9 +41,9 @@ impl UnitaryBuilder {
     }
 
     pub fn apply_right(&mut self, utry: &SquareMatrix, location: &Vec<usize>, inverse: bool) {
-        let mut left_perm = location.iter();
-        let mut mid_perm = (0..self.size).filter(|x| !location.contains(&x));
-        let mut right_perm = (0..self.size).map(|x| x + self.size);
+        let left_perm = location.iter();
+        let mid_perm = (0..self.size).filter(|x| !location.contains(&x));
+        let right_perm = (0..self.size).map(|x| x + self.size);
 
         let left_dim: usize = left_perm.clone().map(|i| self.radixes[*i]).product();
         let unitary = if inverse {
@@ -81,7 +85,10 @@ impl UnitaryBuilder {
         });
         let right_perm = location.iter().map(|x| x + self.size);
 
-        let right_dim: usize = location.iter().product();
+        let right_dim: usize = right_perm
+            .clone()
+            .map(|i| self.radixes[i - self.size])
+            .product();
 
         let unitary = if inverse {
             utry.H().into_ndarray()
@@ -98,7 +105,7 @@ impl UnitaryBuilder {
         let reshaped = permuted
             .to_shape((dim / right_dim, right_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = unitary.dot(&reshaped);
+        let prod = reshaped.dot(&unitary);
         let radixes = [&self.radixes[..], &self.radixes[..]].concat();
         let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
         let reshape_back = prod

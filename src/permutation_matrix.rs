@@ -19,13 +19,15 @@ impl Permutation {
     pub fn transpositions(&self) -> Vec<(usize, usize)> {
         let mut res = vec![];
         let a = self.cyclic_form();
-        for x in a {
+        for mut x in a {
             let nx = x.len();
             if nx == 2 {
                 res.push((x[0], x[1]));
             } else if nx > 2 {
-                let first = x[0];
-                for y in &x[nx - 1..1] {
+                let (start, end) = x.split_at_mut(1);
+                end.reverse();
+                let first = start[0];
+                for y in end {
                     res.push((first, *y));
                 }
             }

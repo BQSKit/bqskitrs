@@ -1,33 +1,39 @@
 use num_complex::Complex64;
 
-use numpy::{PyArray1, PyArray2};
+use numpy::PyArray2;
 
-use pyo3::class::basic::PyObjectProtocol;
-use pyo3::exceptions;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
-use pyo3::wrap_pyfunction;
 
 use better_panic::install;
 
 use squaremat::SquareMatrix;
 
-use crate::gates::*;
+use crate::python::circuit::PyCircuit;
 use crate::utils::{
     matrix_distance_squared, matrix_distance_squared_jac, matrix_residuals, matrix_residuals_jac,
 };
 
 //#[cfg(any(feature = "ceres", feature = "bfgs"))]
-//use crate::solvers::{BfgsJacSolver, CeresJacSolver, Solver};
+use crate::python::minimizers::*;
 
 #[cfg(any(feature = "ceres", feature = "bfgs"))]
 mod minimizers;
+
+mod circuit;
 
 pub type PySquareMatrix = PyArray2<Complex64>;
 
 #[pymodule]
 fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
+    // Install better panic for better tracebacks
     install();
+
+    m.add_class::<PyHilberSchmidtCostFn>()?;
+    m.add_class::<PyHilberSchmidtResidualFn>()?;
+    m.add_class::<PyBfgsJacSolver>()?;
+    m.add_class::<PyCeresJacSolver>()?;
+    m.add_class::<PyCircuit>()?;
+
     #[pyfn(m, "matrix_distance_squared")]
     fn matrix_distance_squared_py(a: &PySquareMatrix, b: &PySquareMatrix) -> f64 {
         matrix_distance_squared(

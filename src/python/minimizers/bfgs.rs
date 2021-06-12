@@ -6,12 +6,11 @@ use pyo3::types::PyTuple;
 use crate::minimizers::BfgsJacSolver;
 use crate::minimizers::CostFunction;
 use crate::minimizers::Minimizer;
-use crate::minimizers::Minimzer;
 
 use pyo3::exceptions::PyTypeError;
 
-#[pyclass(name = "LBFGSMinimizerNative", module = "bqskitrs")]
-struct PyBfgsJacSolver {
+#[pyclass(name = "LBFGSMinimizerNative", subclass, module = "bqskitrs")]
+pub struct PyBfgsJacSolver {
     size: usize,
 }
 

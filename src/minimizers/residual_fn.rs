@@ -38,6 +38,7 @@ pub trait DifferentiableResidualFn: ResidualFn {
     }
 }
 
+#[derive(Clone)]
 pub struct HilbertSchmidtResidualFn {
     circ: Circuit,
     target: SquareMatrix,

@@ -30,9 +30,16 @@ pub trait DifferentiableCostFn: CostFn {
     }
 }
 
+#[derive(Clone)]
 pub struct HilbertSchmidtCostFn {
     circ: Circuit,
     target: SquareMatrix,
+}
+
+impl HilbertSchmidtCostFn {
+    pub fn new(circ: Circuit, target: SquareMatrix) -> Self {
+        HilbertSchmidtCostFn { circ, target }
+    }
 }
 
 impl CostFn for HilbertSchmidtCostFn {

@@ -1,13 +1,11 @@
 use pyo3::{exceptions::PyTypeError, prelude::*, types::PyTuple};
 
-use crate::minimizers::{CeresJacSolver, ResidualFunction};
+use crate::minimizers::{CeresJacSolver, Minimizer, ResidualFunction};
 
-use numpy::{PyArray1, PyArray2};
+use numpy::PyArray1;
 
-use crate::minimizers::Minimizer;
-
-#[pyclass(name = "LeastSquares_Jac_SolverNative", module = "bqskitrs")]
-struct PyCeresJacSolver {
+#[pyclass(name = "LeastSquaresMinimizerNative", subclass, module = "bqskitrs")]
+pub struct PyCeresJacSolver {
     #[pyo3(get)]
     distance_metric: String,
     num_threads: usize,

@@ -9,6 +9,7 @@ use squaremat::SquareMatrix;
 type Location = Vec<usize>;
 
 /// A list of gates in a quantum circuit
+#[derive(Clone)]
 pub struct Circuit {
     size: usize,
     radixes: Vec<usize>,

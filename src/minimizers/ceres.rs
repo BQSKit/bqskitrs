@@ -1,6 +1,6 @@
 use ceres::CeresSolver;
 
-use super::{DifferentiableResidualFn, Minimzer, ResidualFn, ResidualFunction};
+use super::{DifferentiableResidualFn, Minimizer, ResidualFn, ResidualFunction};
 
 pub struct CeresJacSolver {
     solver: CeresSolver,
@@ -14,7 +14,7 @@ impl CeresJacSolver {
     }
 }
 
-impl Minimzer for CeresJacSolver {
+impl Minimizer for CeresJacSolver {
     type CostFunctionTy = ResidualFunction;
     fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64> {
         let i = x0.len();

@@ -139,6 +139,10 @@ impl SquareMatrix {
         self.data
     }
 
+    pub fn into_vec(self) -> Vec<Complex64> {
+        self.data.into_raw_vec()
+    }
+
     pub fn dot(&self, other: &SquareMatrix) -> Complex64 {
         assert_eq!(self.size, other.size);
         let mut res = [r!(0.0)];

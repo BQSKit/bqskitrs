@@ -23,11 +23,11 @@ where
     T: ResidualFn + Sized,
 {
     fn get_residuals(&self, params: &[f64]) -> Vec<f64> {
-        ResidualFn::get_residuals(self, params)
+        self.as_ref().get_residuals(params)
     }
 
     fn num_residuals(&self) -> usize {
-        ResidualFn::num_residuals(self)
+        self.as_ref().num_residuals()
     }
 }
 
@@ -38,11 +38,35 @@ pub trait DifferentiableResidualFn: ResidualFn {
     }
 }
 
+impl<T> DifferentiableResidualFn for Box<T>
+where
+    T: DifferentiableResidualFn + Sized,
+{
+    fn get_grad(&self, params: &[f64]) -> Array2<f64> {
+        self.as_ref().get_grad(params)
+    }
+
+    fn get_residuals_and_grad(&self, params: &[f64]) -> (Vec<f64>, Array2<f64>) {
+        self.as_ref().get_residuals_and_grad(params)
+    }
+}
+
 #[derive(Clone)]
 pub struct HilbertSchmidtResidualFn {
     circ: Circuit,
     target: SquareMatrix,
     eye: Array2<f64>,
+}
+
+impl HilbertSchmidtResidualFn {
+    pub fn new(circ: Circuit, target: SquareMatrix) -> Self {
+        let size = target.size;
+        HilbertSchmidtResidualFn {
+            circ,
+            target,
+            eye: Array2::eye(size),
+        }
+    }
 }
 
 impl CostFn for HilbertSchmidtResidualFn {

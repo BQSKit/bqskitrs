@@ -31,15 +31,6 @@ pub fn argsort(v: Vec<usize>) -> Vec<usize> {
         .collect()
 }
 
-const fn num_bits<T>() -> usize {
-    std::mem::size_of::<T>() * 8
-}
-
-pub fn log_2(x: usize) -> usize {
-    num_bits::<usize>() - x.leading_zeros() as usize - 1
-}
-
-#[cfg(any(feature = "bfgs", feature = "python"))]
 pub fn matrix_distance_squared(a: &SquareMatrix, b: &SquareMatrix) -> f64 {
     // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]
     // converted to
@@ -51,13 +42,6 @@ pub fn matrix_distance_squared(a: &SquareMatrix, b: &SquareMatrix) -> f64 {
     1f64 - norm / a.size as f64
 }
 
-#[cfg(feature = "python")]
-pub fn matrix_distance(a: &SquareMatrix, b: &SquareMatrix) -> f64 {
-    let dist_sq = matrix_distance_squared(a, b);
-    dist_sq.abs().sqrt()
-}
-
-#[cfg(any(feature = "bfgs", feature = "python"))]
 pub fn matrix_distance_squared_jac(
     u: &SquareMatrix,
     m: &SquareMatrix,
@@ -76,7 +60,6 @@ pub fn matrix_distance_squared_jac(
     (dsq, jacs)
 }
 
-#[cfg(any(feature = "ceres", feature = "python"))]
 /// Calculates the residuals
 pub fn matrix_residuals(a: &SquareMatrix, b: &SquareMatrix, i: &Array2<f64>) -> Vec<f64> {
     let m = b.matmul(&a.H());
@@ -85,7 +68,6 @@ pub fn matrix_residuals(a: &SquareMatrix, b: &SquareMatrix, i: &Array2<f64>) -> 
     r.iter().chain(im.iter()).copied().collect()
 }
 
-#[cfg(any(feature = "ceres", feature = "python"))]
 pub fn matrix_residuals_jac(
     u: &SquareMatrix,
     _m: &SquareMatrix,

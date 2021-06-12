@@ -9,7 +9,6 @@ pub struct UnitaryBuilder {
     size: usize,
     radixes: Vec<usize>,
     tensor: ArrayD<Complex64>,
-    num_params: usize,
     dim: usize,
 }
 
@@ -24,7 +23,6 @@ impl UnitaryBuilder {
             size,
             radixes,
             tensor,
-            num_params: 0,
             dim,
         }
     }

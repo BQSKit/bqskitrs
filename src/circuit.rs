@@ -81,26 +81,26 @@ impl Gradient for Circuit {
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut full_grads = vec![];
-        for (M, location) in matrices.iter().zip(locations.iter()) {
-            right.apply_right(M, location, false);
+        for (m, location) in matrices.iter().zip(locations.iter()) {
+            right.apply_right(m, location, false);
         }
 
-        for ((M, location), dM) in matrices.iter().zip(locations.iter()).zip(grads) {
+        for ((m, location), d_m) in matrices.iter().zip(locations.iter()).zip(grads) {
             let perm = calc_permutation_matrix(self.size, (**location).clone());
             let perm_t = perm.T();
             let id = SquareMatrix::eye(2usize.pow((self.size - location.len()) as u32));
 
-            right.apply_left(M, location, true);
+            right.apply_left(m, location, true);
             let right_utry = right.get_utry();
             let left_utry = left.get_utry();
-            for grad in dM {
+            for grad in d_m {
                 let mut full_grad = grad.kron(&id);
                 full_grad = perm.matmul(&full_grad);
                 full_grad = full_grad.matmul(&perm_t);
                 let right_grad = right_utry.matmul(&full_grad);
                 full_grads.push(right_grad.matmul(&left_utry));
             }
-            left.apply_right(&M, location, false);
+            left.apply_right(&m, location, false);
         }
         (left.get_utry(), full_grads)
     }

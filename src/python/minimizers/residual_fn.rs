@@ -1,9 +1,11 @@
-use crate::minimizers::{
+use crate::{circuit::Circuit, minimizers::{
     CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction,
-};
+}};
 use ndarray::Array2;
+use num_complex::Complex64;
 use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
+use squaremat::SquareMatrix;
 
 struct PyResidualFn {
     cost_fn: PyObject,
@@ -76,10 +78,55 @@ impl DifferentiableResidualFn for PyResidualFn {
     }
 }
 
-#[pyclass(name = "HilbertSchmidtResidualFunction", subclass, module = "bqskitrs")]
+#[pyclass(name = "HilbertSchmidtResidualsFunction", subclass, module = "bqskitrs")]
 pub struct PyHilberSchmidtResidualFn {
     cost_fn: HilbertSchmidtResidualFn,
 }
+
+#[pymethods]
+impl PyHilberSchmidtResidualFn {
+    #[new]
+    pub fn new(circ: Circuit, target_matrix: &PyArray2<Complex64>) -> Self {
+        let target = SquareMatrix::from_ndarray(target_matrix.to_owned_array());
+        PyHilberSchmidtResidualFn {
+            cost_fn: HilbertSchmidtResidualFn::new(circ, target),
+        }
+    }
+
+    #[call]
+    pub fn __call__(&self, py: Python, params: Vec<f64>) -> Vec<f64> {
+        self.get_residuals(py, params)
+    }
+
+    pub fn get_cost(&self, _py: Python, params: Vec<f64>) -> f64 {
+        self.cost_fn.get_cost(&params)
+    }
+
+    pub fn get_residuals(&self, _py: Python, params: Vec<f64>) -> Vec<f64> {
+        self.cost_fn.get_residuals(&params)
+    }
+
+    pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<f64>> {
+        PyArray2::from_array(
+            py,
+            &self.cost_fn.get_grad(&params),
+        )
+        .to_owned()
+    }
+
+    pub fn get_residuals_and_grad(&self, py: Python, params: Vec<f64>) -> (Vec<f64>, Py<PyArray2<f64>>) {
+        let (residuals, grad) = self.cost_fn.get_residuals_and_grad(&params);
+        (
+            residuals,
+            PyArray2::from_array(
+                py,
+                &grad,
+            )
+            .to_owned()
+        )
+    }
+}
+
 
 fn is_cost_fn_obj<'a>(obj: &'a PyAny) -> PyResult<bool> {
     if obj.hasattr("get_cost")? {

@@ -15,7 +15,6 @@ extern crate intel_mkl_src;
 extern crate openblas_src;
 
 use circuit::Circuit;
-use unitary_builder::UnitaryBuilder;
 
 #[macro_export]
 macro_rules! c {

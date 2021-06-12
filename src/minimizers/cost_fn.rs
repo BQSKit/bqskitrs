@@ -19,7 +19,7 @@ where
     T: CostFn,
 {
     fn get_cost(&self, params: &[f64]) -> f64 {
-        CostFn::get_cost(self, params)
+        self.as_ref().get_cost(params)
     }
 }
 

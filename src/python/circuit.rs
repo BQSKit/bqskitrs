@@ -2,10 +2,10 @@ use crate::circuit::Circuit;
 use crate::gates::Gradient;
 use crate::gates::Unitary;
 use crate::gates::*;
-use ndarray::Array0;
+
 use ndarray::Array3;
 use num_complex::Complex64;
-use numpy::PyArray0;
+
 use numpy::PyArray2;
 use numpy::PyArray3;
 use pyo3::exceptions;

@@ -6,7 +6,7 @@ use ceres_sys::ceres::{
     ceres_create_problem, ceres_free_problem, ceres_init, ceres_problem_add_residual_block,
     ceres_problem_t,
 };
-use ceres_sys::solve_silent::ceres_solve_silent;
+use ceres_sys::ceres_solve_silent;
 
 static CERES_INIT: Once = Once::new();
 

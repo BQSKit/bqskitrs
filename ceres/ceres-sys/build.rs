@@ -28,8 +28,7 @@ fn main() {
         } else {
             let ceres = Config::new("ceres-solver")
                 .define("EXPORT_BUILD_DIR", "ON")
-                .define("CXX11", "ON")
-                .define("CXX11_THREADS", "ON")
+                .define("CXX_THREADS", "ON")
                 .define("BUILD_TESTING", "OFF")
                 .define("BUILD_BENCHMARKS", "OFF")
                 .define("MINIGLOG", "ON")
@@ -43,24 +42,48 @@ fn main() {
                 .build();
             println!("cargo:rustc-link-search=native={}/lib", ceres.display());
             println!("cargo:rustc-link-lib=static=ceres");
-            cpp_build::Config::new()
-                .include(format!("{}/include", ceres.display()))
-                .include(format!(
-                    "{}/include/ceres/internal/miniglog",
-                    ceres.display()
-                ))
-                .include("/usr/include/eigen3")
-                .include("/usr/local/include/eigen3")
-                .include("/usr/local/include/eigen")
-                .build("src/solve_silent.rs");
+            let sysinclude3 = std::path::PathBuf::from("/usr/include/eigen3");
+            let sysinclude = std::path::PathBuf::from("/usr/include/eigen3");
+            let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
+            let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
+            let targetminiglog = std::path::PathBuf::from(format!("{}/include/ceres/internal/miniglog", ceres.display()));
+            let targetinclude = std::path::PathBuf::from(format!("{}/include", ceres.display()));
+            let mut b = cxx_build::bridge(
+                "src/solve_silent.rs",
+            );
+            b.flag_if_supported("-std=c++14")
+        .flag_if_supported("-Wno-unused-parameter")
+        .include(sysinclude3)
+        .include(sysinclude)
+        .include(localinclude3)
+        .include(localinclude)
+        .include(targetminiglog)
+        .include(targetinclude)
+        .include("src")
+        .compile("autocxx-ceres");
+            println!("cargo:rerun-if-changed=src/lib.rs");
+            println!("cargo:rerun-if-changed=ceres-solver");
         }
     } else {
         println!("cargo:rustc-link-lib=ceres");
-        cpp_build::Config::new()
-            .include("/usr/include/eigen3")
-            .include("/usr/local/include/eigen3")
-            .include("/usr/local/include/eigen")
-            .build("src/solve_silent.rs");
+        let sysinclude3 = std::path::PathBuf::from("/usr/include/eigen3");
+        let sysinclude = std::path::PathBuf::from("/usr/include/eigen3");
+        let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
+        let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
+        let mut b = cxx_build::bridge(
+            "src/solve_silent.rs",
+        );
+        b.flag_if_supported("-std=c++14")
+        .flag_if_supported("-Wno-unused-parameter")
+        .include(sysinclude3)
+        .include(sysinclude)
+        .include(localinclude3)
+        .include(localinclude)
+        .include("src")
+        .compile("autocxx-ceres");
+
+        println!("cargo:rerun-if-changed=src/lib.rs");
+        println!("cargo:rerun-if-changed=ceres-solver");
     }
     let target = env::var("TARGET").unwrap();
     if target.contains("apple") {

@@ -1,6 +1,9 @@
-use crate::{circuit::Circuit, minimizers::{
-    CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction,
-}};
+use crate::{
+    circuit::Circuit,
+    minimizers::{
+        CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction,
+    },
+};
 use ndarray::Array2;
 use num_complex::Complex64;
 use numpy::{PyArray1, PyArray2};
@@ -78,7 +81,11 @@ impl DifferentiableResidualFn for PyResidualFn {
     }
 }
 
-#[pyclass(name = "HilbertSchmidtResidualsFunction", subclass, module = "bqskitrs")]
+#[pyclass(
+    name = "HilbertSchmidtResidualsFunction",
+    subclass,
+    module = "bqskitrs"
+)]
 pub struct PyHilberSchmidtResidualFn {
     cost_fn: HilbertSchmidtResidualFn,
 }
@@ -107,26 +114,18 @@ impl PyHilberSchmidtResidualFn {
     }
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<f64>> {
-        PyArray2::from_array(
-            py,
-            &self.cost_fn.get_grad(&params),
-        )
-        .to_owned()
+        PyArray2::from_array(py, &self.cost_fn.get_grad(&params)).to_owned()
     }
 
-    pub fn get_residuals_and_grad(&self, py: Python, params: Vec<f64>) -> (Vec<f64>, Py<PyArray2<f64>>) {
+    pub fn get_residuals_and_grad(
+        &self,
+        py: Python,
+        params: Vec<f64>,
+    ) -> (Vec<f64>, Py<PyArray2<f64>>) {
         let (residuals, grad) = self.cost_fn.get_residuals_and_grad(&params);
-        (
-            residuals,
-            PyArray2::from_array(
-                py,
-                &grad,
-            )
-            .to_owned()
-        )
+        (residuals, PyArray2::from_array(py, &grad).to_owned())
     }
 }
-
 
 fn is_cost_fn_obj<'a>(obj: &'a PyAny) -> PyResult<bool> {
     if obj.hasattr("get_cost")? {

@@ -127,15 +127,16 @@ impl PyHilberSchmidtResidualFn {
     }
 }
 
-fn is_cost_fn_obj<'a>(obj: &'a PyAny) -> PyResult<bool> {
+fn is_cost_fn_obj(obj: &'_ PyAny) -> PyResult<bool> {
     if obj.hasattr("get_cost")? {
         let get_cost = obj.getattr("get_cost")?;
-        if get_cost.is_callable() {
-            if obj.hasattr("get_grad")? {
-                if obj.getattr("get_grad")?.is_callable() {
-                    return Ok(true);
-                }
-            }
+        let get_residuals = obj.getattr("get_residuals")?;
+        if get_cost.is_callable()
+            && get_residuals.is_callable()
+            && obj.hasattr("get_grad")?
+            && obj.getattr("get_grad")?.is_callable()
+        {
+            return Ok(true);
         }
     }
     Ok(false)

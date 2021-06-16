@@ -61,11 +61,15 @@ pub fn matrix_distance_squared_jac(
 }
 
 /// Calculates the residuals
-pub fn matrix_residuals(a: &SquareMatrix, b: &SquareMatrix, i: &Array2<f64>) -> Vec<f64> {
-    let m = b.matmul(&a.H());
-    let (re, im) = m.split_complex();
-    let r = re - i;
-    r.iter().chain(im.iter()).copied().collect()
+pub fn matrix_residuals(
+    a_matrix: &SquareMatrix,
+    b_matrix: &SquareMatrix,
+    identity: &Array2<f64>,
+) -> Vec<f64> {
+    let calculated_mat = b_matrix.matmul(&a_matrix.H());
+    let (re, im) = calculated_mat.split_complex();
+    let resid = re - identity;
+    resid.iter().chain(im.iter()).copied().collect()
 }
 
 pub fn matrix_residuals_jac(

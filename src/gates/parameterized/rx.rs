@@ -5,7 +5,7 @@ use crate::gates::{Gradient, Size};
 use squaremat::SquareMatrix;
 
 /// Arbitrary X rotation single qubit gate
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct RXGate();
 
 impl RXGate {

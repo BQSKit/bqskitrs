@@ -7,7 +7,7 @@ use num_complex::Complex64;
 use squaremat::SquareMatrix;
 
 /// IBM's U1 single qubit gate
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct U1Gate();
 
 impl U1Gate {

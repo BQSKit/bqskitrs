@@ -46,21 +46,22 @@ fn main() {
             let sysinclude = std::path::PathBuf::from("/usr/include/eigen3");
             let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
             let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
-            let targetminiglog = std::path::PathBuf::from(format!("{}/include/ceres/internal/miniglog", ceres.display()));
+            let targetminiglog = std::path::PathBuf::from(format!(
+                "{}/include/ceres/internal/miniglog",
+                ceres.display()
+            ));
             let targetinclude = std::path::PathBuf::from(format!("{}/include", ceres.display()));
-            let mut b = cxx_build::bridge(
-                "src/solve_silent.rs",
-            );
+            let mut b = cxx_build::bridge("src/solve_silent.rs");
             b.flag_if_supported("-std=c++14")
-        .flag_if_supported("-Wno-unused-parameter")
-        .include(sysinclude3)
-        .include(sysinclude)
-        .include(localinclude3)
-        .include(localinclude)
-        .include(targetminiglog)
-        .include(targetinclude)
-        .include("src")
-        .compile("autocxx-ceres");
+                .flag_if_supported("-Wno-unused-parameter")
+                .include(sysinclude3)
+                .include(sysinclude)
+                .include(localinclude3)
+                .include(localinclude)
+                .include(targetminiglog)
+                .include(targetinclude)
+                .include("src")
+                .compile("autocxx-ceres");
             println!("cargo:rerun-if-changed=src/lib.rs");
             println!("cargo:rerun-if-changed=ceres-solver");
         }
@@ -70,17 +71,15 @@ fn main() {
         let sysinclude = std::path::PathBuf::from("/usr/include/eigen3");
         let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
         let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
-        let mut b = cxx_build::bridge(
-            "src/solve_silent.rs",
-        );
+        let mut b = cxx_build::bridge("src/solve_silent.rs");
         b.flag_if_supported("-std=c++14")
-        .flag_if_supported("-Wno-unused-parameter")
-        .include(sysinclude3)
-        .include(sysinclude)
-        .include(localinclude3)
-        .include(localinclude)
-        .include("src")
-        .compile("autocxx-ceres");
+            .flag_if_supported("-Wno-unused-parameter")
+            .include(sysinclude3)
+            .include(sysinclude)
+            .include(localinclude3)
+            .include(localinclude)
+            .include("src")
+            .compile("autocxx-ceres");
 
         println!("cargo:rerun-if-changed=src/lib.rs");
         println!("cargo:rerun-if-changed=ceres-solver");

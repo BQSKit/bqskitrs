@@ -14,8 +14,6 @@ extern crate intel_mkl_src;
 #[cfg(any(feature = "static", feature = "default"))]
 extern crate openblas_src;
 
-use circuit::Circuit;
-
 #[macro_export]
 macro_rules! c {
     ($re:expr, $im:expr) => {

@@ -21,15 +21,17 @@ impl Permutation {
         let a = self.cyclic_form();
         for mut x in a {
             let nx = x.len();
-            if nx == 2 {
-                res.push((x[0], x[1]));
-            } else if nx > 2 {
-                let (start, end) = x.split_at_mut(1);
-                end.reverse();
-                let first = start[0];
-                for y in end {
-                    res.push((first, *y));
+            match nx {
+                2 => res.push((x[0], x[1])),
+                d if d > 2 => {
+                    let (start, end) = x.split_at_mut(1);
+                    end.reverse();
+                    let first = start[0];
+                    for y in end {
+                        res.push((first, *y));
+                    }
                 }
+                _ => unreachable!(),
             }
         }
         res
@@ -41,8 +43,7 @@ impl Permutation {
 
         for i in 0..self.perm.len() {
             if unchecked[i] {
-                let mut cycle = vec![];
-                cycle.push(i);
+                let mut cycle = vec![i];
                 unchecked[i] = false;
                 let mut j = i;
                 while unchecked[self.perm[j]] {

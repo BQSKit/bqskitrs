@@ -91,7 +91,7 @@ impl PyCircuit {
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {
         let grad = self.circ.get_grad(&params, &self.circ.constant_gates);
-        if grad.len() == 0 {
+        if grad.is_empty() {
             return PyArray3::zeros(py, (0, 0, 0), false).to_owned();
         }
         let size = grad[0].size;

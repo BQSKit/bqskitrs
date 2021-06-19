@@ -143,6 +143,10 @@ impl SquareMatrix {
         self.data.into_raw_vec()
     }
 
+    pub fn trace(&self) -> Complex64 {
+        self.data.diag().iter().sum()
+    }
+
     pub fn dot(&self, other: &SquareMatrix) -> Complex64 {
         assert_eq!(self.size, other.size);
         let mut res = [r!(0.0)];

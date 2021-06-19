@@ -1,16 +1,12 @@
-#[cfg(feature = "bfgs")]
 mod bfgs;
 mod ceres;
 
-#[cfg(feature = "bfgs")]
 pub use self::bfgs::BfgsJacSolver;
 pub use self::ceres::CeresJacSolver;
 
-#[cfg(feature = "bfgs")]
 mod cost_fn;
 mod residual_fn;
 
-#[cfg(feature = "bfgs")]
 pub use cost_fn::*;
 pub use residual_fn::*;
 

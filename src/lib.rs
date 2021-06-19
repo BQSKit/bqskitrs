@@ -1,11 +1,12 @@
 mod circuit;
 mod gates;
-#[cfg(any(feature = "ceres", feature = "bfgs"))]
+mod instantiators;
 mod minimizers;
 mod permutation_matrix;
 mod python;
 mod unitary_builder;
 mod utils;
+mod operation;
 
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;

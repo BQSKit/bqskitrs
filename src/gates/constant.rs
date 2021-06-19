@@ -1,4 +1,5 @@
 use super::Gradient;
+use super::Optimize;
 use super::Size;
 use super::Unitary;
 use squaremat::SquareMatrix;
@@ -36,3 +37,5 @@ impl Gradient for ConstantGate {
         vec![]
     }
 }
+
+impl Optimize for ConstantGate {}

@@ -1,4 +1,5 @@
 use crate::gates::Gradient;
+use crate::gates::Optimize;
 use crate::gates::Size;
 use crate::gates::Unitary;
 use crate::{i, r};
@@ -87,3 +88,5 @@ impl Size for U3Gate {
         1
     }
 }
+
+impl Optimize for U3Gate {}

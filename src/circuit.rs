@@ -1,19 +1,13 @@
-use crate::{
-    gates::{Gate, Gradient, Unitary},
-    permutation_matrix::calc_permutation_matrix,
-    unitary_builder::UnitaryBuilder,
-};
+use crate::{gates::{Gradient, Unitary}, operation::Operation, permutation_matrix::calc_permutation_matrix, unitary_builder::UnitaryBuilder};
 
 use squaremat::SquareMatrix;
-
-type Location = Vec<usize>;
 
 /// A list of gates in a quantum circuit
 #[derive(Clone)]
 pub struct Circuit {
-    size: usize,
-    radixes: Vec<usize>,
-    pub gates: Vec<(Gate, Location)>,
+    pub size: usize,
+    pub radixes: Vec<usize>,
+    pub ops: Vec<Operation>,
     pub constant_gates: Vec<SquareMatrix>,
 }
 
@@ -21,35 +15,62 @@ impl Circuit {
     pub fn new(
         size: usize,
         radixes: Vec<usize>,
-        gates: Vec<(Gate, Location)>,
+        ops: Vec<Operation>,
         constant_gates: Vec<SquareMatrix>,
     ) -> Self {
         Circuit {
             size,
             radixes,
-            gates,
+            ops,
             constant_gates,
+        }
+    }
+
+    pub fn get_params(&self) -> Vec<f64> {
+        let ret = Vec::with_capacity(self.num_params());
+        self.ops.iter().fold(ret, |mut ret, op| {ret.extend_from_slice(&op.params); ret})
+    }
+
+    pub fn set_params(&mut self, params: &[f64]) {
+        let mut param_idx = 0;
+        for op in self.ops.iter_mut() {
+            let parameters = &params[param_idx..param_idx + op.num_params()];
+            op.params.copy_from_slice(parameters);
+            param_idx += op.num_params();
         }
     }
 }
 
 impl Unitary for Circuit {
     fn num_params(&self) -> usize {
-        self.gates.iter().map(|i| i.0.num_params()).sum()
+        self.ops.iter().map(|i| i.gate.num_params()).sum()
     }
 
     fn get_utry(&self, params: &[f64], const_gates: &[SquareMatrix]) -> SquareMatrix {
-        let mut param_idx = 0;
-        let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
-        for (gate, location) in &self.gates {
-            let utry = gate.get_utry(
-                &params[param_idx..param_idx + gate.num_params()],
-                const_gates,
-            );
-            param_idx += gate.num_params();
-            builder.apply_right(&utry, location, false);
+        if !params.is_empty() {
+            assert_eq!(params.len(), self.num_params());
+            let mut param_idx = 0;
+            let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
+            for op in &self.ops {
+                let utry = op.get_utry(
+                    &params[param_idx..param_idx + op.num_params()],
+                    const_gates,
+                );
+                param_idx += op.num_params();
+                builder.apply_right(&utry, &op.location, false);
+            }
+            builder.get_utry()
+        } else {
+            let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
+            for op in &self.ops {
+                let utry = op.get_utry(
+                    &[],
+                    const_gates,
+                );
+                builder.apply_right(&utry, &op.location, false);
+            }
+            builder.get_utry()
         }
-        builder.get_utry()
     }
 }
 
@@ -66,16 +87,28 @@ impl Gradient for Circuit {
         let mut matrices = vec![];
         let mut grads = vec![];
         let mut locations = vec![];
-        let mut param_idx = 0;
-        for (gate, location) in &self.gates {
-            let (utry, grad) = gate.get_utry_and_grad(
-                &params[param_idx..param_idx + gate.num_params()],
-                const_gates,
-            );
-            param_idx += gate.num_params();
-            matrices.push(utry);
-            grads.push(grad);
-            locations.push(location);
+        if params.is_empty() {
+            for op in &self.ops {
+                let (utry, grad) = op.get_utry_and_grad(
+                    &[],
+                    const_gates,
+                );
+                matrices.push(utry);
+                grads.push(grad);
+                locations.push(&op.location);
+            }
+        } else {
+            let mut param_idx = 0;
+            for op in &self.ops {
+                let (utry, grad) = op.get_utry_and_grad(
+                    &params[param_idx..param_idx + op.num_params()],
+                    const_gates,
+                );
+                param_idx += op.num_params();
+                matrices.push(utry);
+                grads.push(grad);
+                locations.push(&op.location);
+            }
         }
 
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
@@ -86,7 +119,7 @@ impl Gradient for Circuit {
         }
 
         for ((m, location), d_m) in matrices.iter().zip(locations.iter()).zip(grads) {
-            let perm = calc_permutation_matrix(self.size, (**location).clone());
+            let perm = calc_permutation_matrix(self.size, (*location).clone());
             let perm_t = perm.T();
             let id = SquareMatrix::eye(2usize.pow((self.size - location.len()) as u32));
 

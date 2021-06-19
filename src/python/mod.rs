@@ -13,11 +13,13 @@ use crate::utils::{
     matrix_distance_squared, matrix_distance_squared_jac, matrix_residuals, matrix_residuals_jac,
 };
 
-//#[cfg(any(feature = "ceres", feature = "bfgs"))]
 use crate::python::minimizers::*;
 
-#[cfg(any(feature = "ceres", feature = "bfgs"))]
 mod minimizers;
+
+use crate::python::instantiators::*;
+
+mod instantiators;
 
 mod circuit;
 
@@ -33,6 +35,7 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyBfgsJacSolver>()?;
     m.add_class::<PyCeresJacSolver>()?;
     m.add_class::<PyCircuit>()?;
+    m.add_class::<PyQFactorInstantiator>()?;
 
     #[pyfn(m, "matrix_distance_squared")]
     fn matrix_distance_squared_py(a: &PySquareMatrix, b: &PySquareMatrix) -> f64 {

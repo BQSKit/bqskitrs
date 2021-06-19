@@ -2,6 +2,7 @@ use crate::circuit::Circuit;
 use crate::gates::Gradient;
 use crate::gates::Unitary;
 use crate::gates::*;
+use crate::operation::Operation;
 
 use ndarray::Array3;
 use num_complex::Complex64;
@@ -23,6 +24,11 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
         "U1Gate" => Ok(U1Gate::new().into()),
         "U2Gate" => Ok(U2Gate::new().into()),
         "U3Gate" => Ok(U3Gate::new().into()),
+        "VariableUnitaryGate" => {
+            let size = pygate.getattr("size")?.extract::<usize>()?;
+            let radixes = pygate.getattr("radixes")?.extract::<Vec<usize>>()?;
+            Ok(VariableUnitaryGate::new(size, radixes).into())
+        }
         _ => {
             if pygate.getattr("num_params")?.extract::<usize>()? == 0 {
                 let args: Vec<f64> = vec![];
@@ -53,16 +59,17 @@ impl<'source> FromPyObject<'source> for Circuit {
         let radixes = ob.call_method0("get_radixes")?.extract::<Vec<usize>>()?;
         let circ_iter = ob.call_method0("operations")?;
         let iter = PyIterator::from_object(py, circ_iter)?;
-        let mut gates = vec![];
+        let mut ops = vec![];
         let mut constant_gates = vec![];
         for operation in iter {
             let op = operation?;
-            let pygate = op.getattr("_gate")?;
+            let pygate = op.getattr("gate")?;
             let location = op.getattr("location")?.extract::<Vec<usize>>()?;
+            let params = op.getattr("params")?.extract::<Vec<f64>>()?;
             let gate = pygate_to_native(pygate, &mut constant_gates)?;
-            gates.push((gate, location));
+            ops.push(Operation::new(gate, location, params));
         }
-        Ok(Circuit::new(size, radixes, gates, constant_gates))
+        Ok(Circuit::new(size, radixes, ops, constant_gates))
     }
 }
 

@@ -89,7 +89,7 @@ classifier = [
 
 [package.metadata.vcpkg]
 git = "https://github.com/microsoft/vcpkg"
-rev = "2020.06"
+rev = "2021.05.12"
 
 [package.metadata.vcpkg.target]
 x86_64-pc-windows-msvc = { triplet="x64-windows-static-md", install=[

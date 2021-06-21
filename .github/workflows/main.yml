@@ -52,11 +52,8 @@ jobs:
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'ubuntu')
-        - name: install qsearch
-          run: pip install . && pip install twine wheel
-        - name: run pytest
-          run: pytest
-          if: "!contains(github.event.head_commit.message, '[bqskitrs pypi]')"
+        - name: install twine and wheel
+          run: pip install twine wheel
         - name: Remove target/ to prepare for building manylinux wheels
           run: rm -rf target
           if: startsWith(matrix.os, 'ubuntu')

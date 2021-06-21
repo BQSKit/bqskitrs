@@ -41,11 +41,19 @@ impl PyQFactorInstantiator {
 
     pub fn instantiate(
         &self,
+        py: Python,
         circuit: Circuit,
-        target: &PyArray2<Complex64>,
+        target: PyObject,
         x0: Vec<f64>,
-    ) -> Vec<f64> {
-        let target_rs = SquareMatrix::from_ndarray(target.to_owned_array());
-        self.instantiator.instantiate(circuit, target_rs, &x0)
+    ) -> PyResult<Vec<f64>> {
+        let target_rs = match target.extract::<Py<PyArray2<Complex64>>>(py) {
+            Ok(arr) => arr,
+            Err(..) => {
+                let target_np = target.call_method0(py, "get_numpy")?;
+                target_np.extract::<Py<PyArray2<Complex64>>>(py)?
+            }
+        };
+        let target_rs = SquareMatrix::from_ndarray(target_rs.as_ref(py).to_owned_array());
+        Ok(self.instantiator.instantiate(circuit, target_rs, &x0))
     }
 }

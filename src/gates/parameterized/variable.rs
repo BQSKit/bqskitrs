@@ -73,7 +73,8 @@ impl Unitary for VariableUnitaryGate {
             .map(|(re, im)| Complex64::new(*re, *im))
             .collect();
         let len = vec.len();
-        let mut matrix = Array2::from_shape_vec((self.dim, self.dim), vec).expect(&format!("Got vec of length {}, self.dim is {}", len, self.dim));
+        let mut matrix = Array2::from_shape_vec((self.dim, self.dim), vec)
+            .unwrap_or_else(|_| panic!("Got vec of length {}, self.dim is {}", len, self.dim));
         let (u, vt) = svd(matrix.view_mut());
         SquareMatrix::from_ndarray(u.dot(&vt))
     }

@@ -31,7 +31,6 @@ impl Unitary for Operation {
         } else {
             self.gate.get_utry(params, const_gates)
         }
-        
     }
 }
 
@@ -44,7 +43,11 @@ impl Gradient for Operation {
         }
     }
 
-    fn get_utry_and_grad(&self, params: &[f64], const_gates: &[SquareMatrix]) -> (SquareMatrix, Vec<SquareMatrix>) {
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        const_gates: &[SquareMatrix],
+    ) -> (SquareMatrix, Vec<SquareMatrix>) {
         if params.is_empty() {
             self.gate.get_utry_and_grad(&self.params, const_gates)
         } else {

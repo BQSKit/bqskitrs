@@ -1,4 +1,9 @@
-use crate::{gates::{Gradient, Unitary}, operation::Operation, permutation_matrix::calc_permutation_matrix, unitary_builder::UnitaryBuilder};
+use crate::{
+    gates::{Gradient, Unitary},
+    operation::Operation,
+    permutation_matrix::calc_permutation_matrix,
+    unitary_builder::UnitaryBuilder,
+};
 
 use squaremat::SquareMatrix;
 
@@ -28,7 +33,10 @@ impl Circuit {
 
     pub fn get_params(&self) -> Vec<f64> {
         let ret = Vec::with_capacity(self.num_params());
-        self.ops.iter().fold(ret, |mut ret, op| {ret.extend_from_slice(&op.params); ret})
+        self.ops.iter().fold(ret, |mut ret, op| {
+            ret.extend_from_slice(&op.params);
+            ret
+        })
     }
 
     pub fn set_params(&mut self, params: &[f64]) {
@@ -52,10 +60,8 @@ impl Unitary for Circuit {
             let mut param_idx = 0;
             let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
             for op in &self.ops {
-                let utry = op.get_utry(
-                    &params[param_idx..param_idx + op.num_params()],
-                    const_gates,
-                );
+                let utry =
+                    op.get_utry(&params[param_idx..param_idx + op.num_params()], const_gates);
                 param_idx += op.num_params();
                 builder.apply_right(&utry, &op.location, false);
             }
@@ -63,10 +69,7 @@ impl Unitary for Circuit {
         } else {
             let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
             for op in &self.ops {
-                let utry = op.get_utry(
-                    &[],
-                    const_gates,
-                );
+                let utry = op.get_utry(&[], const_gates);
                 builder.apply_right(&utry, &op.location, false);
             }
             builder.get_utry()
@@ -89,10 +92,7 @@ impl Gradient for Circuit {
         let mut locations = vec![];
         if params.is_empty() {
             for op in &self.ops {
-                let (utry, grad) = op.get_utry_and_grad(
-                    &[],
-                    const_gates,
-                );
+                let (utry, grad) = op.get_utry_and_grad(&[], const_gates);
                 matrices.push(utry);
                 grads.push(grad);
                 locations.push(&op.location);

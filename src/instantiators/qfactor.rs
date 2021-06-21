@@ -52,11 +52,7 @@ impl QFactorInstantiator {
         unitary_builder
     }
 
-    pub fn sweep_circuit(
-        &self,
-        unitary_builder: &mut UnitaryBuilder,
-        circuit: &mut Circuit,
-    ) {
+    pub fn sweep_circuit(&self, unitary_builder: &mut UnitaryBuilder, circuit: &mut Circuit) {
         // Start by looping backwards
         for op in circuit.ops.iter_mut().rev() {
             let gate = op.get_utry(&[], &circuit.constant_gates);
@@ -88,7 +84,6 @@ impl QFactorInstantiator {
 
 impl Instantiate for QFactorInstantiator {
     fn instantiate(&self, mut circuit: Circuit, target: SquareMatrix, x0: &[f64]) -> Vec<f64> {
-
         circuit.set_params(x0);
 
         let mut unitary_builder = self.initialize_circuit_tensor(&circuit, &target);

@@ -1,6 +1,6 @@
 [package]
 name = "bqskitrs"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 authors = ["Ethan Smith <ethanhs@berkeley.edu>"]
 license = "LGPL-2.1 AND BSD-3-Clause"
 edition = "2018"
@@ -13,7 +13,6 @@ include = [
     "build.rs",
     "Dockerfile",
     "pyproject.toml",
-    "test-requirements.txt",
     "squaremat/**/*",
     "ceres/**/*",
 ]

@@ -1,0 +1,86 @@
+name: run tests
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [3.7,3.8,3.9]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    steps:
+        - name: checkout
+          uses: actions/checkout@v2
+          with:
+            submodules: true
+        - name: setup python
+          uses: actions/setup-python@v1
+          with:
+            python-version: ${{ matrix.python-version }}
+        - name: Install nightly-2021-06-09
+          uses: actions-rs/toolchain@v1
+          with:
+              toolchain: nightly-2021-06-09
+              default: true
+        - if: startsWith(matrix.os, 'ubuntu')
+          run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev
+        - if: startsWith(matrix.os, 'macOS')
+          run: brew install ceres-solver eigen
+        - if: startsWith(matrix.os, 'Windows')
+          run: cargo install cargo-vcpkg && cargo vcpkg -v build
+        - name: Build macOS wheels
+          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features accelerate,ceres/static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+          env:
+            RUST_BACKTRACE: 1
+          if: startsWith(matrix.os, 'macOS')
+        - name: Build Windows wheels
+          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+          env:
+            RUST_BACKTRACE: 1
+          if: startsWith(matrix.os, 'Windows')
+        - name: Build Linux wheel
+          run: pip install .
+          env:
+            RUST_BACKTRACE: 1
+          if: startsWith(matrix.os, 'ubuntu')
+        - name: install qsearch
+          run: pip install . && pip install twine wheel
+        - name: run pytest
+          run: pytest
+          if: "!contains(github.event.head_commit.message, '[bqskitrs pypi]')"
+        - name: Remove target/ to prepare for building manylinux wheels
+          run: rm -rf target
+          if: startsWith(matrix.os, 'ubuntu')
+        - name: Build manylinux wheels
+          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist
+          env:
+            RUST_BACKTRACE: 1
+          if: startsWith(matrix.os, 'ubuntu') && matrix.python-version == 3.8
+        - name: upload wheel artifacts
+          uses: actions/upload-artifact@v1
+          with:
+            name: bqskitrs-wheels-${{matrix.os}}-${{matrix.python-version}}
+            path: target/wheels
+          if: startsWith(matrix.os, 'macOS') || matrix.python-version == 3.8
+        - name: Publish bqskitrs to PyPI
+          env:
+            TWINE_USERNAME: __token__
+            TWINE_PASSWORD: ${{ secrets.pypi_password }}
+          run: twine upload bqskitrs/target/wheels/*
+          if: contains(github.event.head_commit.message, '[bqskitrs pypi]') && !((matrix.python-version == 3.6 || matrix.python-version == 3.7 || matrix.python_version == 3.9) && startsWith(matrix.os, 'ubuntu'))
+        - name: Remove target/wheels to clear some space
+          run: rm -rf target/wheels
+          if: (startsWith(matrix.os, 'macOS') || startsWith(matrix.os, 'ubuntu')) && matrix.python-version != 3.8
+        - name: Remove target/wheels to clear some space
+          run: rmdir /s /q target\vcpkg
+          shell: cmd
+          if: startsWith(matrix.os, 'Windows')

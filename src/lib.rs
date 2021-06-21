@@ -2,11 +2,11 @@ mod circuit;
 mod gates;
 mod instantiators;
 mod minimizers;
+mod operation;
 mod permutation_matrix;
 mod python;
 mod unitary_builder;
 mod utils;
-mod operation;
 
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;

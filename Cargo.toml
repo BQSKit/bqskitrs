@@ -98,6 +98,4 @@ x86_64-pc-windows-msvc = { triplet="x64-windows-static-md", install=[
     "openblas",
     "glog",
     "gflags",
-    "lapack",
-    "lapack-reference",
 ] }

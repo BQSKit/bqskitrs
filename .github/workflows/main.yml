@@ -32,7 +32,7 @@ jobs:
               toolchain: nightly-2021-06-09
               default: true
         - if: startsWith(matrix.os, 'ubuntu')
-          run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev liblapacke-dev
+          run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev
         - if: startsWith(matrix.os, 'macOS')
           run: brew install ceres-solver eigen lapack
         - if: startsWith(matrix.os, 'Windows')

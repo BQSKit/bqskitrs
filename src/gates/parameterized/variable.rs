@@ -5,11 +5,14 @@ use ndarray::{Array2, ArrayViewMut2};
 use num_complex::Complex64;
 use squaremat::SquareMatrix;
 
-use lax::{SVDDC_, UVTFlag, layout::MatrixLayout};
+use lax::{layout::MatrixLayout, UVTFlag, SVDDC_};
 
 fn svd(mut matrix: ArrayViewMut2<Complex64>) -> (Array2<Complex64>, Array2<Complex64>) {
     let size = matrix.shape()[0];
-    let layout = MatrixLayout::C { row: size as i32, lda: size as i32 };
+    let layout = MatrixLayout::C {
+        row: size as i32,
+        lda: size as i32,
+    };
     let result = SVDDC_::svddc(layout, UVTFlag::Full, matrix.as_slice_mut().unwrap()).unwrap();
 
     (

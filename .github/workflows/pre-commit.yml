@@ -22,6 +22,7 @@ jobs:
       with:
           toolchain: nightly-2021-06-09
           default: true
+          components: rustfmt, clippy
     - if: startsWith(matrix.os, 'ubuntu')
       run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev
     - name: set PY

@@ -9,8 +9,21 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v1
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: setup python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+    - name: Install nightly-2021-06-09
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly-2021-06-09
+          default: true
+    - if: startsWith(matrix.os, 'ubuntu')
+      run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev
     - name: set PY
       run: echo "name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')" >> $GITHUB_ENV
     - uses: actions/cache@v1

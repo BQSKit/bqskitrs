@@ -43,7 +43,7 @@ jobs:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'macOS')
         - name: Build Windows wheels
-          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static,openblas-src/system" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'Windows')

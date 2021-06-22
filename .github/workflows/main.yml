@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.7,3.8,3.9]
+        python-version: [3.7]
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     steps:
@@ -58,25 +58,24 @@ jobs:
           run: rm -rf target
           if: startsWith(matrix.os, 'ubuntu')
         - name: Build manylinux wheels
-          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist
+          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist --skip-auditwheel && rm -rf target/wheels
           env:
             RUST_BACKTRACE: 1
-          if: startsWith(matrix.os, 'ubuntu') && matrix.python-version == 3.8
+          if: startsWith(matrix.os, 'ubuntu')
         - name: upload wheel artifacts
           uses: actions/upload-artifact@v1
           with:
             name: bqskitrs-wheels-${{matrix.os}}-${{matrix.python-version}}
             path: target/wheels
-          if: startsWith(matrix.os, 'macOS') || matrix.python-version == 3.8
         - name: Publish bqskitrs to PyPI
           env:
             TWINE_USERNAME: __token__
             TWINE_PASSWORD: ${{ secrets.pypi_password }}
           run: twine upload bqskitrs/target/wheels/*
-          if: contains(github.event.head_commit.message, '[bqskitrs pypi]') && !((matrix.python-version == 3.6 || matrix.python-version == 3.7 || matrix.python_version == 3.9) && startsWith(matrix.os, 'ubuntu'))
+          if: contains(github.event.head_commit.message, '[bqskitrs pypi]')
         - name: Remove target/wheels to clear some space
           run: rm -rf target/wheels
-          if: (startsWith(matrix.os, 'macOS') || startsWith(matrix.os, 'ubuntu')) && matrix.python-version != 3.8
+          if: startsWith(matrix.os, 'macOS') || startsWith(matrix.os, 'ubuntu')
         - name: Remove target/wheels to clear some space
           run: rmdir /s /q target\vcpkg
           shell: cmd

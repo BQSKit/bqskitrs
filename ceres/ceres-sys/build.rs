@@ -11,18 +11,24 @@ fn main() {
             #[cfg(target_os = "windows")]
             let gflags = vcpkg::find_package("gflags").unwrap();
             #[cfg(target_os = "windows")]
-            let mut conf = cpp_build::Config::new();
+            let mut b = cxx_build::bridge("src/solve_silent.rs");
             #[cfg(target_os = "windows")]
-            for include in ceres
-                .include_paths
-                .iter()
-                .chain(glog.include_paths.iter())
-                .chain(gflags.include_paths.iter())
-            {
-                conf.include(include.to_str().unwrap());
-            }
+            b.flag_if_supported("/std:c++14")
+                .includes(
+                    ceres
+                        .include_paths
+                        .iter()
+                        .chain(glog.include_paths.iter())
+                        .chain(gflags.include_paths.iter())
+                        .map(|include| include.to_str().unwrap()),
+                )
+                .include("src")
+                .compile("autocxx-ceres");
             #[cfg(target_os = "windows")]
-            conf.build("src/solve_silent.rs");
+            println!("cargo:rerun-if-changed=src/lib.rs");
+            #[cfg(target_os = "windows")]
+            println!("cargo:rerun-if-changed=ceres-solver");
+
             #[cfg(target_os = "windows")]
             println!("cargo:rustc-link-lib=shlwapi")
         } else {

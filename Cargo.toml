@@ -59,6 +59,12 @@ itertools = "0.10"
 pyo3 = { version="0.13.2", features=["extension-module", "abi3-py37"] }
 lax = { git = "https://github.com/rust-ndarray/ndarray-linalg.git", rev = "c7f22aea" }
 
+[patch.crates-io]
+openblas-src = { git = "https://github.com/blas-lapack-rs/openblas-src" }
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
+vcpkg = "0.2.13"
+
 [lib]
 name = "bqskitrs"
 path = "src/lib.rs"
@@ -98,4 +104,5 @@ x86_64-pc-windows-msvc = { triplet="x64-windows-static-md", install=[
     "openblas",
     "glog",
     "gflags",
+    "clapack",
 ] }

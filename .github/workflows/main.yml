@@ -58,25 +58,26 @@ jobs:
           run: rm -rf target
           if: startsWith(matrix.os, 'ubuntu')
         - name: Build manylinux wheels
-          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist --skip-auditwheel && rm -rf target/wheels
+          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist --skip-auditwheel
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'ubuntu')
         - name: upload wheel artifacts
           uses: actions/upload-artifact@v1
           with:
-            name: bqskitrs-wheels-${{matrix.os}}-${{matrix.python-version}}
+            name: bqskitrs-wheels-${{matrix.os}}
             path: target/wheels
+          if: startsWith(matrix.os, 'macOS')
         - name: Publish bqskitrs to PyPI
           env:
             TWINE_USERNAME: __token__
             TWINE_PASSWORD: ${{ secrets.pypi_password }}
           run: twine upload bqskitrs/target/wheels/*
-          if: contains(github.event.head_commit.message, '[bqskitrs pypi]')
+          if: contains(github.event.head_commit.message, '[bqskitrs pypi]') && startsWith(matrix.os, 'macOS')
         - name: Remove target/wheels to clear some space
           run: rm -rf target/wheels
           if: startsWith(matrix.os, 'macOS') || startsWith(matrix.os, 'ubuntu')
         - name: Remove target/wheels to clear some space
-          run: rmdir /s /q target\vcpkg
+          run: rmdir /s /q target\vcpkg && rmdir /s /q target\wheels
           shell: cmd
           if: startsWith(matrix.os, 'Windows')

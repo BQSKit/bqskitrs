@@ -5,11 +5,6 @@ use std::process::Command;
 fn main() -> Result<(), std::io::Error> {
     // Homebrew/macOS gcc don't add libgfortran to the rpath,
     // so we manually go prodding around for it here
-    if cfg!(feature = "static") {
-        println!("cargo:rustc-link-lib=static=lapacke");
-    } else {
-        println!("cargo:rustc-link-lib=dylib=lapacke");
-    }
     if cfg!(target_os = "macos") {
         // First, we get brew prefix, if installed. Fall back to system gcc.
         let prefix = String::from_utf8(

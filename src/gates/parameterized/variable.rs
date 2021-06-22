@@ -5,33 +5,16 @@ use ndarray::{Array2, ArrayViewMut2};
 use num_complex::Complex64;
 use squaremat::SquareMatrix;
 
-use lapacke::{zgesdd, Layout};
+use lax::{SVDDC_, UVTFlag, layout::MatrixLayout};
 
 fn svd(mut matrix: ArrayViewMut2<Complex64>) -> (Array2<Complex64>, Array2<Complex64>) {
     let size = matrix.shape()[0];
-    let mut s = vec![0.0; size];
-    let mut u = vec![Complex64::default(); size * size];
-    let mut vt = vec![Complex64::default(); size * size];
-    // safety: All matrices default to row major and have linear memory
-    // s, u, vt all initialized above
-    unsafe {
-        zgesdd(
-            Layout::RowMajor,
-            b'a',
-            size as i32,
-            size as i32,
-            matrix.as_slice_mut().unwrap(),
-            size as i32,
-            &mut s,
-            &mut u,
-            size as i32,
-            &mut vt,
-            size as i32,
-        );
-    }
+    let layout = MatrixLayout::C { row: size as i32, lda: size as i32 };
+    let result = SVDDC_::svddc(layout, UVTFlag::Full, matrix.as_slice_mut().unwrap()).unwrap();
+
     (
-        Array2::from_shape_vec((size, size), u).unwrap(),
-        Array2::from_shape_vec((size, size), vt).unwrap(),
+        Array2::from_shape_vec((size, size), result.u.unwrap()).unwrap(),
+        Array2::from_shape_vec((size, size), result.vt.unwrap()).unwrap(),
     )
 }
 

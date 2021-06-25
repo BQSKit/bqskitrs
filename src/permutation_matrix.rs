@@ -34,6 +34,7 @@ impl Permutation {
                 _ => unreachable!(),
             }
         }
+        res.reverse();
         res
     }
 
@@ -69,25 +70,29 @@ impl MulAssign<&mut Permutation> for Permutation {
     }
 }
 
-fn swap_bit(i: usize, j: usize, b: usize) -> usize {
+pub fn swap_bit(i: usize, j: usize, b: usize) -> usize {
     let mut b_out = b;
     if i != j {
         let b_i = (b >> i) & 1;
         let b_j = (b >> j) & 1;
         if b_i != b_j {
             b_out &= !((1 << i) | (1 << j));
-            b_out |= (b_i << j) | (b_j << i)
+            b_out |= (b_i << j) | (b_j << i);
         }
     }
     b_out
 }
 
-fn swap(x: usize, y: usize, n: usize) -> Permutation {
-    Permutation::new(
-        (0..(2usize.pow(n as u32)))
-            .map(|i| swap_bit(n - 1 - x, n - 1 - y, i))
-            .collect(),
-    )
+pub fn swap(x: usize, y: usize, n: usize) -> Permutation {
+    if x == y {
+        Permutation::id(2usize.pow(n as u32))
+    } else {
+        Permutation::new(
+            (0..(2usize.pow(n as u32)))
+                .map(|i| swap_bit(n - 1 - x, n - 1 - y, i))
+                .collect(),
+        )
+    }
 }
 
 pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> SquareMatrix {
@@ -99,7 +104,8 @@ pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Squar
     let mut temp_pos: Vec<usize> = (0..num_gate_qubits).collect();
 
     for q in 0..num_gate_qubits {
-        perm *= &mut swap(temp_pos[q], location[q], num_core_qubits);
+        let mut swap_out = swap(temp_pos[q], location[q], num_core_qubits);
+        perm *= &mut swap_out;
         if location[q] < num_gate_qubits {
             temp_pos[location[q]] = temp_pos[q];
         }

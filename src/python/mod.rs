@@ -23,6 +23,8 @@ mod instantiators;
 
 mod circuit;
 
+use crate::permutation_matrix::{calc_permutation_matrix, swap_bit};
+
 pub type PySquareMatrix = PyArray2<Complex64>;
 
 #[pymodule]
@@ -36,6 +38,19 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyCeresJacSolver>()?;
     m.add_class::<PyCircuit>()?;
     m.add_class::<PyQFactorInstantiator>()?;
+
+    #[pyfn(m, "calc_permutation_matrix")]
+    fn calc_permutation_matrix_py(py: Python, num_qubits: usize, location: Vec<usize>) -> Py<PyArray2<Complex64>> {
+        PyArray2::from_array(
+            py,
+            &calc_permutation_matrix(num_qubits, location).into_ndarray()
+        ).to_owned()
+    }
+
+    #[pyfn(m, "swap_bit")]
+    fn swap_bit_py(i: usize, j: usize, b: usize) -> usize {
+        swap_bit(i, j, b)
+    }
 
     #[pyfn(m, "matrix_distance_squared")]
     fn matrix_distance_squared_py(a: &PySquareMatrix, b: &PySquareMatrix) -> f64 {

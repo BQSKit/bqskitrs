@@ -80,7 +80,7 @@ jobs:
           if: contains(github.event.head_commit.message, '[bqskitrs pypi]') && startsWith(matrix.os, 'macOS')
         - name: Remove target/wheels to clear some space
           run: rm -rf target/wheels
-          if: startsWith(matrix.os, 'macOS') || startsWith(matrix.os, 'ubuntu')
+          if: startsWith(matrix.os, 'macOS')
         - name: Remove target/wheels to clear some space
           run: rmdir /s /q target\vcpkg && rmdir /s /q target\wheels
           shell: cmd

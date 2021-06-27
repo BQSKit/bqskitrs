@@ -24,7 +24,7 @@ jobs:
           default: true
           components: rustfmt, clippy
     - if: startsWith(matrix.os, 'ubuntu')
-      run: sudo apt install libopenblas-dev libgfortran-9-dev libeigen3-dev 
+      run: sudo apt install libopenblas-dev libgfortran-9-dev libeigen3-dev
     - name: set PY
       run: echo "name=PY::$(python -c 'import hashlib, sys;print(hashlib.sha256(sys.version.encode()+sys.executable.encode()).hexdigest())')" >> $GITHUB_ENV
     - uses: actions/cache@v1

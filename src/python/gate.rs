@@ -104,29 +104,29 @@ impl Gradient for PyGate {
             .extract::<(PyObject, Vec<PyObject>)>(py)
             .expect("Failed to convert return of get_unitary_and_grad.");
         let pyarray = match pyutry.as_ref(py).hasattr("get_numpy").unwrap() {
-                true => pyutry
-                    .call_method0(py, "get_numpy")
-                    .expect("Failed to convert UnitaryMatrix to ndarray."),
-                false => pyutry,
-            }
-            .extract::<Py<PyArray2<Complex64>>>(py)
-            .expect("Failed to convert return of get array into complex matrix.");
+            true => pyutry
+                .call_method0(py, "get_numpy")
+                .expect("Failed to convert UnitaryMatrix to ndarray."),
+            false => pyutry,
+        }
+        .extract::<Py<PyArray2<Complex64>>>(py)
+        .expect("Failed to convert return of get array into complex matrix.");
         (
             SquareMatrix::from_ndarray(pyarray.as_ref(py).to_owned_array()),
             pygrads
-            .iter()
-            .map(|pygrad| {
-                let grad = match pygrad.as_ref(py).hasattr("get_numpy").unwrap() {
-                    true => pygrad
-                        .call_method0(py, "get_numpy")
-                        .expect("Failed to convert UnitaryMatrix to ndarray."),
-                    false => pygrad.clone(),
-                }
-                .extract::<Py<PyArray2<Complex64>>>(py)
-                .expect("Failed to convert return of get_grad into complex matrix.");
-                SquareMatrix::from_ndarray(grad.as_ref(py).to_owned_array())
-            })
-            .collect()
+                .iter()
+                .map(|pygrad| {
+                    let grad = match pygrad.as_ref(py).hasattr("get_numpy").unwrap() {
+                        true => pygrad
+                            .call_method0(py, "get_numpy")
+                            .expect("Failed to convert UnitaryMatrix to ndarray."),
+                        false => pygrad.clone(),
+                    }
+                    .extract::<Py<PyArray2<Complex64>>>(py)
+                    .expect("Failed to convert return of get_grad into complex matrix.");
+                    SquareMatrix::from_ndarray(grad.as_ref(py).to_owned_array())
+                })
+                .collect(),
         )
     }
 }

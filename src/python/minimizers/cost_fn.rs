@@ -66,10 +66,14 @@ impl PyHilberSchmidtCostFn {
         let name = dunder_name.extract::<&str>()?;
         let target = SquareMatrix::from_ndarray(match name {
             "UnitaryMatrix" => {
-                let np = target_matrix.call_method0("get_numpy")?.extract::<&PyArray2<Complex64>>()?;
+                let np = target_matrix
+                    .call_method0("get_numpy")?
+                    .extract::<&PyArray2<Complex64>>()?;
                 np.to_owned_array()
             }
-            "ndarray" => target_matrix.extract::<&PyArray2<Complex64>>()?.to_owned_array(),
+            "ndarray" => target_matrix
+                .extract::<&PyArray2<Complex64>>()?
+                .to_owned_array(),
             _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
         });
         Ok(PyHilberSchmidtCostFn {

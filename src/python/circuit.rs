@@ -28,6 +28,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
         "U1Gate" => Ok(U1Gate::new().into()),
         "U2Gate" => Ok(U2Gate::new().into()),
         "U3Gate" => Ok(U3Gate::new().into()),
+        "U8Gate" => Ok(U8Gate::new().into()),
         "VariableUnitaryGate" => {
             let size = pygate.getattr("size")?.extract::<usize>()?;
             let radixes = pygate.getattr("radixes")?.extract::<Vec<usize>>()?;

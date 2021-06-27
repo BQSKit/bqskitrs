@@ -1,6 +1,6 @@
 [package]
 name = "bqskitrs"
-version = "0.1.0-alpha.2"
+version = "0.1.0-alpha.3"
 authors = ["Ethan Smith <ethanhs@berkeley.edu>"]
 license = "LGPL-2.1 AND BSD-3-Clause"
 edition = "2018"

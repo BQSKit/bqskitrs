@@ -84,6 +84,7 @@ impl DifferentiableResidualFn for PyResidualFn {
 #[pyclass(
     name = "HilbertSchmidtResidualsFunction",
     subclass,
+    unsendable,
     module = "bqskitrs"
 )]
 pub struct PyHilberSchmidtResidualFn {

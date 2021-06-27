@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::circuit::Circuit;
 use crate::gates::Gradient;
 use crate::gates::Unitary;
@@ -12,6 +14,8 @@ use numpy::PyArray3;
 use pyo3::exceptions;
 use pyo3::{prelude::*, types::PyIterator};
 use squaremat::SquareMatrix;
+
+use super::gate::PyGate;
 
 fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> PyResult<Gate> {
     let cls = pygate.getattr("__class__")?;
@@ -39,13 +43,22 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
                 let mat = pymat.to_owned_array();
                 let gate_size = pygate.getattr("size")?.extract::<usize>()?;
                 let index = constant_gates.len();
-                constant_gates.push(SquareMatrix::from_ndarray(mat).T());
+                constant_gates.push(SquareMatrix::from_ndarray(mat));
                 Ok(ConstantGate::new(index, gate_size).into())
             } else {
-                Err(exceptions::PyValueError::new_err(format!(
-                    "Unknown gate {}",
-                    name
-                )))
+                if pygate.hasattr("get_unitary")?
+                    && pygate.hasattr("get_grad")?
+                    && pygate.hasattr("optimize")?
+                    && pygate.hasattr("get_unitary_and_grad")?
+                {
+                    let dynamic: Rc<dyn DynGate> = Rc::new(PyGate::new(pygate.into()));
+                    Ok(Gate::Dynamic(dynamic))
+                } else {
+                    Err(exceptions::PyValueError::new_err(format!(
+                        "Gate {} does not implement the necessary methods for optimization.",
+                        name
+                    )))
+                }
             }
         }
     }
@@ -73,7 +86,7 @@ impl<'source> FromPyObject<'source> for Circuit {
     }
 }
 
-#[pyclass(name = "Circuit", subclass, module = "bqskitrs")]
+#[pyclass(name = "Circuit", subclass, unsendable, module = "bqskitrs")]
 pub struct PyCircuit {
     circ: Circuit,
 }

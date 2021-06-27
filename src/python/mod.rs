@@ -25,6 +25,8 @@ mod circuit;
 
 use crate::permutation_matrix::{calc_permutation_matrix, swap_bit};
 
+mod gate;
+
 pub type PySquareMatrix = PyArray2<Complex64>;
 
 #[pymodule]
@@ -40,11 +42,16 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyQFactorInstantiator>()?;
 
     #[pyfn(m, "calc_permutation_matrix")]
-    fn calc_permutation_matrix_py(py: Python, num_qubits: usize, location: Vec<usize>) -> Py<PyArray2<Complex64>> {
+    fn calc_permutation_matrix_py(
+        py: Python,
+        num_qubits: usize,
+        location: Vec<usize>,
+    ) -> Py<PyArray2<Complex64>> {
         PyArray2::from_array(
             py,
-            &calc_permutation_matrix(num_qubits, location).into_ndarray()
-        ).to_owned()
+            &calc_permutation_matrix(num_qubits, location).into_ndarray(),
+        )
+        .to_owned()
     }
 
     #[pyfn(m, "swap_bit")]

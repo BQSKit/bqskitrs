@@ -1,5 +1,3 @@
-use std::f64::consts::PI;
-
 use super::{CostFunction, DifferentiableCostFn, Minimizer};
 
 use crate::minimizers::CostFn;
@@ -32,8 +30,6 @@ impl Minimizer for BfgsJacSolver {
         };
         let mut x = x0;
         let mut fmin = Nlopt::new(Algorithm::Lbfgs, i, &f, Target::Minimize, ());
-        fmin.set_upper_bound(2.0 * PI).unwrap();
-        fmin.set_lower_bound(0.0).unwrap();
         fmin.set_stopval(1e-16).unwrap();
         fmin.set_maxeval(15000).unwrap();
         fmin.set_vector_storage(Some(self.size)).unwrap();

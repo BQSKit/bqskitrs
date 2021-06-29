@@ -16,6 +16,9 @@ impl BfgsJacSolver {
 impl Minimizer for BfgsJacSolver {
     type CostFunctionTy = CostFunction;
     fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64> {
+        if x0.is_empty() {
+            return x0;
+        }
         let i = x0.len();
         let f = |x: &[f64], gradient: Option<&mut [f64]>, _user_data: &mut ()| -> f64 {
             let dsq;

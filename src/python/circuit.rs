@@ -46,20 +46,18 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
                 let index = constant_gates.len();
                 constant_gates.push(SquareMatrix::from_ndarray(mat));
                 Ok(ConstantGate::new(index, gate_size).into())
+            } else if pygate.hasattr("get_unitary")?
+                && pygate.hasattr("get_grad")?
+                && pygate.hasattr("optimize")?
+                && pygate.hasattr("get_unitary_and_grad")?
+            {
+                let dynamic: Rc<dyn DynGate> = Rc::new(PyGate::new(pygate.into()));
+                Ok(Gate::Dynamic(dynamic))
             } else {
-                if pygate.hasattr("get_unitary")?
-                    && pygate.hasattr("get_grad")?
-                    && pygate.hasattr("optimize")?
-                    && pygate.hasattr("get_unitary_and_grad")?
-                {
-                    let dynamic: Rc<dyn DynGate> = Rc::new(PyGate::new(pygate.into()));
-                    Ok(Gate::Dynamic(dynamic))
-                } else {
-                    Err(exceptions::PyValueError::new_err(format!(
-                        "Gate {} does not implement the necessary methods for optimization.",
-                        name
-                    )))
-                }
+                Err(exceptions::PyValueError::new_err(format!(
+                    "Gate {} does not implement the necessary methods for optimization.",
+                    name
+                )))
             }
         }
     }

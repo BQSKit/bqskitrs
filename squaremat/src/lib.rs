@@ -35,7 +35,6 @@ macro_rules! i {
     };
 }
 
-
 #[derive(Clone)]
 pub struct SquareMatrix {
     data: Array2<Complex64>,
@@ -113,7 +112,7 @@ impl SquareMatrix {
             .into_iter()
             .zip(self.data.iter())
         {
-            let v= Array2::from_elem((row_b, row_b), *(elem)) * &other.data;
+            let v = Array2::from_elem((row_b, row_b), *(elem)) * &other.data;
             chunk.assign(&v);
         }
         SquareMatrix::from_ndarray(out)

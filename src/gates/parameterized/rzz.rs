@@ -37,8 +37,8 @@ impl Unitary for RZZGate {
 
 impl Gradient for RZZGate {
     fn get_grad(&self, params: &[f64], _const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
-        let dpos = i!(-1. / 2.) * (i!(1.) * params[0] / 2.).exp();
-        let dneg = i!(1. / 2.) * (i!(-1.) * params[0] / 2.).exp();
+        let dpos = i!(1. / 2.) * (i!(1.) * params[0] / 2.).exp();
+        let dneg = i!(-1. / 2.) * (i!(-1.) * params[0] / 2.).exp();
         let zero = r!(0.0);
         vec![SquareMatrix::from_vec(
             vec![

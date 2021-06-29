@@ -35,23 +35,6 @@ macro_rules! i {
     };
 }
 
-fn kron(a: &[Complex64], row_a: usize, b: &[Complex64], row_b: usize, out: &mut [Complex64]) {
-    let a_data = &a[..row_a * row_a];
-    let b_data = &b[..row_b * row_b];
-    let out_data = &mut out[..row_a * row_b * row_a * row_b];
-    for i in 0..row_a {
-        for j in 0..row_a {
-            let row_start = i * row_b;
-            let col_start = j * row_b;
-            for k in 0..row_b {
-                for l in 0..row_b {
-                    out_data[(row_start + k) * row_a * row_b + col_start + l] =
-                        a_data[i * row_a + j] * b_data[k * row_b + l];
-                }
-            }
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct SquareMatrix {
@@ -124,15 +107,16 @@ impl SquareMatrix {
     pub fn kron(&self, other: &SquareMatrix) -> SquareMatrix {
         let row_a = self.size;
         let row_b = other.size;
-        let mut out = SquareMatrix::zeros(row_a * row_b);
-        kron(
-            self.data.as_slice().unwrap(),
-            row_a,
-            other.data.as_slice().unwrap(),
-            row_b,
-            out.data.as_slice_mut().unwrap(),
-        );
-        out
+        let mut out = Array2::zeros((row_a * row_b, row_a * row_b));
+        for (mut chunk, elem) in out
+            .exact_chunks_mut((row_b, row_b))
+            .into_iter()
+            .zip(self.data.iter())
+        {
+            let v= Array2::from_elem((row_b, row_b), *(elem)) * &other.data;
+            chunk.assign(&v);
+        }
+        SquareMatrix::from_ndarray(out)
     }
 
     pub fn into_ndarray(self) -> Array2<Complex64> {

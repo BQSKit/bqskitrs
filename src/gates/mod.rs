@@ -33,6 +33,9 @@ pub enum Gate {
     RX(RXGate),
     RY(RYGate),
     RZ(RZGate),
+    RXX(RXXGate),
+    RYY(RYYGate),
+    RZZ(RZZGate),
     VariableUnitary(VariableUnitaryGate),
     Dynamic(Rc<dyn DynGate>),
 }
@@ -48,6 +51,9 @@ impl Unitary for Gate {
             Gate::RX(_) => 1,
             Gate::RY(_) => 1,
             Gate::RZ(_) => 1,
+            Gate::RXX(_) => 1,
+            Gate::RYY(_) => 1,
+            Gate::RZZ(_) => 1,
             Gate::VariableUnitary(v) => v.num_params(),
             Gate::Dynamic(d) => d.num_params(),
         }
@@ -63,6 +69,9 @@ impl Unitary for Gate {
             Gate::RX(x) => x.get_utry(params, const_gates),
             Gate::RY(y) => y.get_utry(params, const_gates),
             Gate::RZ(z) => z.get_utry(params, const_gates),
+            Gate::RXX(x) => x.get_utry(params, const_gates),
+            Gate::RYY(y) => y.get_utry(params, const_gates),
+            Gate::RZZ(z) => z.get_utry(params, const_gates),
             Gate::VariableUnitary(v) => v.get_utry(params, const_gates),
             Gate::Dynamic(d) => d.get_utry(params, const_gates),
         }
@@ -80,6 +89,9 @@ impl Gradient for Gate {
             Gate::RX(x) => x.get_grad(params, const_gates),
             Gate::RY(y) => y.get_grad(params, const_gates),
             Gate::RZ(z) => z.get_grad(params, const_gates),
+            Gate::RXX(x) => x.get_grad(params, const_gates),
+            Gate::RYY(y) => y.get_grad(params, const_gates),
+            Gate::RZZ(z) => z.get_grad(params, const_gates),
             Gate::VariableUnitary(v) => v.get_grad(params, const_gates),
             Gate::Dynamic(d) => d.get_grad(params, const_gates),
         }
@@ -97,6 +109,9 @@ impl Size for Gate {
             Gate::RX(_) => 1,
             Gate::RY(_) => 1,
             Gate::RZ(_) => 1,
+            Gate::RXX(_) => 2,
+            Gate::RYY(_) => 2,
+            Gate::RZZ(_) => 2,
             Gate::VariableUnitary(v) => v.get_size(),
             Gate::Dynamic(d) => d.get_size(),
         }
@@ -114,6 +129,9 @@ impl Optimize for Gate {
             Gate::RX(x) => x.optimize(env_matrix),
             Gate::RY(y) => y.optimize(env_matrix),
             Gate::RZ(z) => z.optimize(env_matrix),
+            Gate::RXX(x) => x.optimize(env_matrix),
+            Gate::RYY(y) => y.optimize(env_matrix),
+            Gate::RZZ(z) => z.optimize(env_matrix),
             Gate::VariableUnitary(v) => v.optimize(env_matrix),
             Gate::Dynamic(d) => d.optimize(env_matrix),
         }

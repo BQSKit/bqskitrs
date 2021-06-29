@@ -25,6 +25,9 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
         "RXGate" => Ok(RXGate::new().into()),
         "RYGate" => Ok(RYGate::new().into()),
         "RZGate" => Ok(RZGate::new().into()),
+        "RXXGate" => Ok(RXXGate::new().into()),
+        "RYYGate" => Ok(RYYGate::new().into()),
+        "RZZGate" => Ok(RZZGate::new().into()),
         "U1Gate" => Ok(U1Gate::new().into()),
         "U2Gate" => Ok(U2Gate::new().into()),
         "U3Gate" => Ok(U3Gate::new().into()),
@@ -47,9 +50,8 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
                 constant_gates.push(SquareMatrix::from_ndarray(mat));
                 Ok(ConstantGate::new(index, gate_size).into())
             } else if pygate.hasattr("get_unitary")?
-                && pygate.hasattr("get_grad")?
-                && pygate.hasattr("optimize")?
-                && pygate.hasattr("get_unitary_and_grad")?
+                && ((pygate.hasattr("get_grad")? && pygate.hasattr("get_unitary_and_grad")?)
+                    || pygate.hasattr("optimize")?)
             {
                 let dynamic: Rc<dyn DynGate> = Rc::new(PyGate::new(pygate.into()));
                 Ok(Gate::Dynamic(dynamic))

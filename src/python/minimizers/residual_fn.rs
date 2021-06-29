@@ -94,11 +94,25 @@ pub struct PyHilberSchmidtResidualFn {
 #[pymethods]
 impl PyHilberSchmidtResidualFn {
     #[new]
-    pub fn new(circ: Circuit, target_matrix: &PyArray2<Complex64>) -> Self {
-        let target = SquareMatrix::from_ndarray(target_matrix.to_owned_array());
-        PyHilberSchmidtResidualFn {
+    pub fn new(circ: Circuit, target_matrix: &PyAny) -> PyResult<Self> {
+        let cls = target_matrix.getattr("__class__")?;
+        let dunder_name = cls.getattr("__name__")?;
+        let name = dunder_name.extract::<&str>()?;
+        let target = SquareMatrix::from_ndarray(match name {
+            "UnitaryMatrix" => {
+                let np = target_matrix
+                    .call_method0("get_numpy")?
+                    .extract::<&PyArray2<Complex64>>()?;
+                np.to_owned_array()
+            }
+            "ndarray" => target_matrix
+                .extract::<&PyArray2<Complex64>>()?
+                .to_owned_array(),
+            _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
+        });
+        Ok(PyHilberSchmidtResidualFn {
             cost_fn: HilbertSchmidtResidualFn::new(circ, target),
-        }
+        })
     }
 
     #[call]

@@ -6,18 +6,17 @@ use crate::gates::Unitary;
 use crate::gates::*;
 use crate::operation::Operation;
 
-use ndarray::Array3;
+use ndarray::Array2;
 use num_complex::Complex64;
 
 use numpy::PyArray2;
 use numpy::PyArray3;
 use pyo3::exceptions;
 use pyo3::{prelude::*, types::PyIterator};
-use squaremat::SquareMatrix;
 
 use super::gate::PyGate;
 
-fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> PyResult<Gate> {
+fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>) -> PyResult<Gate> {
     let cls = pygate.getattr("__class__")?;
     let dunder_name = cls.getattr("__name__")?;
     let name = dunder_name.extract::<&str>()?;
@@ -47,7 +46,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<SquareMatrix>) -> P
                 let mat = pymat.to_owned_array();
                 let gate_size = pygate.getattr("size")?.extract::<usize>()?;
                 let index = constant_gates.len();
-                constant_gates.push(SquareMatrix::from_ndarray(mat));
+                constant_gates.push(mat);
                 Ok(ConstantGate::new(index, gate_size).into())
             } else if pygate.hasattr("get_unitary")?
                 && ((pygate.hasattr("get_grad")? && pygate.hasattr("get_unitary_and_grad")?)
@@ -100,34 +99,12 @@ impl PyCircuit {
     }
 
     pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<Complex64>> {
-        PyArray2::from_array(
-            py,
-            &self
-                .circ
-                .get_utry(&params, &self.circ.constant_gates)
-                .into_ndarray(),
-        )
-        .to_owned()
+        PyArray2::from_array(py, &self.circ.get_utry(&params, &self.circ.constant_gates)).to_owned()
     }
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {
         let grad = self.circ.get_grad(&params, &self.circ.constant_gates);
-        if grad.is_empty() {
-            return PyArray3::zeros(py, (0, 0, 0), false).to_owned();
-        }
-        let size = grad[0].size;
-        PyArray3::from_array(
-            py,
-            &Array3::from_shape_vec(
-                (grad.len(), size, size),
-                grad.into_iter().fold(vec![], |mut v, mat| {
-                    v.extend(mat.into_vec());
-                    v
-                }),
-            )
-            .unwrap(),
-        )
-        .to_owned()
+        PyArray3::from_array(py, &grad).to_owned()
     }
 
     pub fn get_unitary_and_grad(
@@ -138,21 +115,9 @@ impl PyCircuit {
         let (utry, grad) = self
             .circ
             .get_utry_and_grad(&params, &self.circ.constant_gates);
-        let size = utry.size;
         (
-            PyArray2::from_array(py, &utry.into_ndarray()).to_owned(),
-            PyArray3::from_array(
-                py,
-                &Array3::from_shape_vec(
-                    (grad.len(), size, size),
-                    grad.into_iter().fold(vec![], |mut v, mat| {
-                        v.extend(mat.into_vec());
-                        v
-                    }),
-                )
-                .unwrap(),
-            )
-            .to_owned(),
+            PyArray2::from_array(py, &utry).to_owned(),
+            PyArray3::from_array(py, &grad).to_owned(),
         )
     }
 }

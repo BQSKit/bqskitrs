@@ -1,8 +1,7 @@
 use std::fmt;
 
-use ndarray::ArrayViewMut2;
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 use super::{Gradient, Optimize, Size, Unitary};
 
@@ -18,7 +17,7 @@ where
         (**self).num_params()
     }
 
-    fn get_utry(&self, params: &[f64], const_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         (**self).get_utry(params, const_gates)
     }
 }
@@ -27,15 +26,15 @@ impl<T> Gradient for Box<T>
 where
     T: DynGate,
 {
-    fn get_grad(&self, params: &[f64], const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         (**self).get_grad(params, const_gates)
     }
 
     fn get_utry_and_grad(
         &self,
         params: &[f64],
-        const_gates: &[SquareMatrix],
-    ) -> (SquareMatrix, Vec<SquareMatrix>) {
+        const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
         (**self).get_utry_and_grad(params, const_gates)
     }
 }

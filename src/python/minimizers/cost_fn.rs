@@ -5,7 +5,6 @@ use crate::{
 use num_complex::Complex64;
 use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
-use squaremat::SquareMatrix;
 
 struct PyCostFn {
     cost_fn: PyObject,
@@ -64,7 +63,7 @@ impl PyHilberSchmidtCostFn {
         let cls = target_matrix.getattr("__class__")?;
         let dunder_name = cls.getattr("__name__")?;
         let name = dunder_name.extract::<&str>()?;
-        let target = SquareMatrix::from_ndarray(match name {
+        let target = match name {
             "UnitaryMatrix" => {
                 let np = target_matrix
                     .call_method0("get_numpy")?
@@ -75,7 +74,7 @@ impl PyHilberSchmidtCostFn {
                 .extract::<&PyArray2<Complex64>>()?
                 .to_owned_array(),
             _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
-        });
+        };
         Ok(PyHilberSchmidtCostFn {
             cost_fn: HilbertSchmidtCostFn::new(circ, target),
         })

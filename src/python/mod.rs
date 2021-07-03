@@ -1,12 +1,10 @@
 use num_complex::Complex64;
 
-use numpy::PyArray2;
+use numpy::{PyArray2, PyReadonlyArray2, PyReadonlyArray3};
 
 use pyo3::prelude::*;
 
 use better_panic::install;
-
-use squaremat::SquareMatrix;
 
 use crate::python::circuit::PyCircuit;
 use crate::utils::{
@@ -27,8 +25,6 @@ use crate::permutation_matrix::{calc_permutation_matrix, swap_bit};
 
 mod gate;
 
-pub type PySquareMatrix = PyArray2<Complex64>;
-
 #[pymodule]
 fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     // Install better panic for better tracebacks
@@ -47,11 +43,7 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
         num_qubits: usize,
         location: Vec<usize>,
     ) -> Py<PyArray2<Complex64>> {
-        PyArray2::from_array(
-            py,
-            &calc_permutation_matrix(num_qubits, location).into_ndarray(),
-        )
-        .to_owned()
+        PyArray2::from_array(py, &calc_permutation_matrix(num_qubits, location)).to_owned()
     }
 
     #[pyfn(m, "swap_bit")]
@@ -60,55 +52,45 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     }
 
     #[pyfn(m, "matrix_distance_squared")]
-    fn matrix_distance_squared_py(a: &PySquareMatrix, b: &PySquareMatrix) -> f64 {
-        matrix_distance_squared(
-            &SquareMatrix::from_ndarray(a.to_owned_array()),
-            &SquareMatrix::from_ndarray(b.to_owned_array()),
-        )
+    fn matrix_distance_squared_py(
+        a: PyReadonlyArray2<Complex64>,
+        b: PyReadonlyArray2<Complex64>,
+    ) -> f64 {
+        matrix_distance_squared(a.as_array(), b.as_array())
     }
     #[pyfn(m, "matrix_distance_squared_jac")]
     fn matrix_distance_squared_jac_py(
-        a: &PySquareMatrix,
-        b: &PySquareMatrix,
-        jacs: Vec<&PySquareMatrix>,
+        a: PyReadonlyArray2<Complex64>,
+        b: PyReadonlyArray2<Complex64>,
+        jacs: PyReadonlyArray3<Complex64>,
     ) -> (f64, Vec<f64>) {
-        matrix_distance_squared_jac(
-            &SquareMatrix::from_ndarray(a.to_owned_array()),
-            &SquareMatrix::from_ndarray(b.to_owned_array()),
-            jacs.iter()
-                .map(|j| SquareMatrix::from_ndarray(j.to_owned_array()))
-                .collect(),
-        )
+        matrix_distance_squared_jac(a.as_array(), b.as_array(), jacs.as_array())
     }
     #[pyfn(m, "matrix_residuals")]
     fn matrix_residuals_py(
-        a: &PySquareMatrix,
-        b: &PySquareMatrix,
-        eye: &PyArray2<f64>,
+        a: PyReadonlyArray2<Complex64>,
+        b: PyReadonlyArray2<Complex64>,
+        eye: PyReadonlyArray2<f64>,
     ) -> Vec<f64> {
         matrix_residuals(
-            &SquareMatrix::from_ndarray(a.to_owned_array()),
-            &SquareMatrix::from_ndarray(b.to_owned_array()),
+            &a.to_owned_array(),
+            &b.to_owned_array(),
             &eye.to_owned_array(),
         )
     }
     #[pyfn(m, "matrix_residuals_jac")]
     fn matrix_residuals_jac_py(
         py: Python,
-        u: &PySquareMatrix,
-        m: &PySquareMatrix,
-        jacs: Vec<&PySquareMatrix>,
+        u: PyReadonlyArray2<Complex64>,
+        m: PyReadonlyArray2<Complex64>,
+        jacs: PyReadonlyArray3<Complex64>,
     ) -> Py<PyArray2<f64>> {
-        let v: Vec<SquareMatrix> = jacs
-            .iter()
-            .map(|i| SquareMatrix::from_ndarray(i.to_owned_array()))
-            .collect();
         PyArray2::from_array(
             py,
             &matrix_residuals_jac(
-                &SquareMatrix::from_ndarray(u.to_owned_array()),
-                &SquareMatrix::from_ndarray(m.to_owned_array()),
-                &v,
+                &u.to_owned_array(),
+                &m.to_owned_array(),
+                &jacs.to_owned_array(),
             ),
         )
         .to_owned()

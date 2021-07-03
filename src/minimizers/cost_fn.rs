@@ -1,5 +1,3 @@
-use squaremat::SquareMatrix;
-
 use crate::{
     circuit::Circuit,
     gates::{Gradient, Unitary},
@@ -7,6 +5,8 @@ use crate::{
 };
 
 use enum_dispatch::enum_dispatch;
+use ndarray::Array2;
+use num_complex::Complex64;
 
 /// Trait defining the signature of a cost function used by minimizers.
 #[enum_dispatch]
@@ -33,11 +33,11 @@ pub trait DifferentiableCostFn: CostFn {
 #[derive(Clone)]
 pub struct HilbertSchmidtCostFn {
     circ: Circuit,
-    target: SquareMatrix,
+    target: Array2<Complex64>,
 }
 
 impl HilbertSchmidtCostFn {
-    pub fn new(circ: Circuit, target: SquareMatrix) -> Self {
+    pub fn new(circ: Circuit, target: Array2<Complex64>) -> Self {
         HilbertSchmidtCostFn { circ, target }
     }
 }
@@ -45,7 +45,7 @@ impl HilbertSchmidtCostFn {
 impl CostFn for HilbertSchmidtCostFn {
     fn get_cost(&self, params: &[f64]) -> f64 {
         let calculated = self.circ.get_utry(params, &self.circ.constant_gates);
-        matrix_distance_squared(&self.target, &calculated)
+        matrix_distance_squared(self.target.view(), calculated.view())
     }
 }
 
@@ -54,14 +54,14 @@ impl DifferentiableCostFn for HilbertSchmidtCostFn {
         let (m, j) = self
             .circ
             .get_utry_and_grad(params, &self.circ.constant_gates);
-        matrix_distance_squared_jac(&self.target, &m, j).1
+        matrix_distance_squared_jac(self.target.view(), m.view(), j.view()).1
     }
 
     fn get_cost_and_grad(&self, params: &[f64]) -> (f64, Vec<f64>) {
         let (m, j) = self
             .circ
             .get_utry_and_grad(params, &self.circ.constant_gates);
-        matrix_distance_squared_jac(&self.target, &m, j)
+        matrix_distance_squared_jac(self.target.view(), m.view(), j.view())
     }
 }
 

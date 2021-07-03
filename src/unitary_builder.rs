@@ -1,6 +1,7 @@
-use ndarray::{Array2, ArrayD, Ix2};
+use ndarray::{Array2, ArrayD, ArrayView2, Ix2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
+
+use squaremat::*;
 
 use crate::utils::{argsort, trace};
 
@@ -27,27 +28,26 @@ impl UnitaryBuilder {
         }
     }
 
-    pub fn get_utry(&self) -> SquareMatrix {
-        SquareMatrix::from_ndarray(
-            self.tensor
-                .to_shape((self.dim, self.dim))
-                .unwrap()
-                .into_dimensionality::<Ix2>()
-                .unwrap()
-                .to_owned(),
-        )
+    pub fn get_utry(&self) -> Array2<Complex64> {
+        self.tensor
+            .to_shape((self.dim, self.dim))
+            .unwrap()
+            .into_dimensionality::<Ix2>()
+            .unwrap()
+            .to_owned()
     }
 
-    pub fn apply_right(&mut self, utry: &SquareMatrix, location: &[usize], inverse: bool) {
+    pub fn apply_right(&mut self, utry: ArrayView2<Complex64>, location: &[usize], inverse: bool) {
         let left_perm = location.iter();
         let mid_perm = (0..self.size).filter(|x| !location.contains(&x));
         let right_perm = (0..self.size).map(|x| x + self.size);
 
         let left_dim: usize = left_perm.clone().map(|i| self.radixes[*i]).product();
         let unitary = if inverse {
-            utry.H().into_ndarray()
+            let conj = utry.conj();
+            conj.reversed_axes()
         } else {
-            utry.clone().into_ndarray()
+            utry.to_owned()
         };
         let mut perm = vec![];
         perm.extend(left_perm);
@@ -72,7 +72,7 @@ impl UnitaryBuilder {
             .into_dyn();
     }
 
-    pub fn apply_left(&mut self, utry: &SquareMatrix, location: &[usize], inverse: bool) {
+    pub fn apply_left(&mut self, utry: ArrayView2<Complex64>, location: &[usize], inverse: bool) {
         let left_perm = 0..self.size;
         let mid_perm = left_perm.clone().filter_map(|x| {
             if location.contains(&x) {
@@ -89,9 +89,9 @@ impl UnitaryBuilder {
             .product();
 
         let unitary = if inverse {
-            utry.H().into_ndarray()
+            utry.conj().reversed_axes()
         } else {
-            utry.clone().into_ndarray()
+            utry.to_owned()
         };
         let mut perm = vec![];
         perm.extend(left_perm);

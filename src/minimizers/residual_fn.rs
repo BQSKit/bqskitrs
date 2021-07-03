@@ -1,5 +1,5 @@
 use ndarray::Array2;
-use squaremat::SquareMatrix;
+use num_complex::Complex64;
 
 use crate::{
     circuit::Circuit,
@@ -54,13 +54,13 @@ where
 #[derive(Clone)]
 pub struct HilbertSchmidtResidualFn {
     circ: Circuit,
-    target: SquareMatrix,
+    target: Array2<Complex64>,
     eye: Array2<f64>,
 }
 
 impl HilbertSchmidtResidualFn {
-    pub fn new(circ: Circuit, target: SquareMatrix) -> Self {
-        let size = target.size;
+    pub fn new(circ: Circuit, target: Array2<Complex64>) -> Self {
+        let size = target.shape()[0];
         HilbertSchmidtResidualFn {
             circ,
             target,
@@ -72,7 +72,7 @@ impl HilbertSchmidtResidualFn {
 impl CostFn for HilbertSchmidtResidualFn {
     fn get_cost(&self, params: &[f64]) -> f64 {
         let calculated = self.circ.get_utry(params, &self.circ.constant_gates);
-        matrix_distance_squared(&self.target, &calculated)
+        matrix_distance_squared(self.target.view(), calculated.view())
     }
 }
 
@@ -83,7 +83,8 @@ impl ResidualFn for HilbertSchmidtResidualFn {
     }
 
     fn num_residuals(&self) -> usize {
-        self.target.size * self.target.size * 2
+        let size = self.target.shape()[0];
+        size * size * 2
     }
 }
 

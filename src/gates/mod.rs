@@ -17,9 +17,8 @@ pub use self::parameterized::*;
 pub use self::size::Size;
 pub use self::unitary::Unitary;
 
-use ndarray::ArrayViewMut2;
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 use derive_more::From;
 
@@ -59,7 +58,7 @@ impl Unitary for Gate {
         }
     }
 
-    fn get_utry(&self, params: &[f64], const_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         match self {
             Gate::Constant(c) => c.get_utry(params, const_gates),
             Gate::U1(u) => u.get_utry(params, const_gates),
@@ -79,7 +78,7 @@ impl Unitary for Gate {
 }
 
 impl Gradient for Gate {
-    fn get_grad(&self, params: &[f64], const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         match self {
             Gate::Constant(c) => c.get_grad(params, const_gates),
             Gate::U1(u) => u.get_grad(params, const_gates),

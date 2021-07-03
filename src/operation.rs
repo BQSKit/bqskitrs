@@ -1,6 +1,5 @@
-use ndarray::ArrayViewMut2;
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 use crate::gates::{Gate, Gradient, Optimize, Unitary};
 
@@ -25,7 +24,7 @@ impl Unitary for Operation {
     fn num_params(&self) -> usize {
         self.gate.num_params()
     }
-    fn get_utry(&self, params: &[f64], const_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         if params.is_empty() {
             self.gate.get_utry(&self.params, const_gates)
         } else {
@@ -35,7 +34,7 @@ impl Unitary for Operation {
 }
 
 impl Gradient for Operation {
-    fn get_grad(&self, params: &[f64], const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         if params.is_empty() {
             self.gate.get_grad(&self.params, const_gates)
         } else {
@@ -46,8 +45,8 @@ impl Gradient for Operation {
     fn get_utry_and_grad(
         &self,
         params: &[f64],
-        const_gates: &[SquareMatrix],
-    ) -> (SquareMatrix, Vec<SquareMatrix>) {
+        const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
         if params.is_empty() {
             self.gate.get_utry_and_grad(&self.params, const_gates)
         } else {

@@ -1,7 +1,7 @@
+use ndarray::{Array2, Array3};
 use num_complex::Complex64;
-use numpy::{PyArray1, PyArray2};
+use numpy::{PyArray1, PyArray2, PyArray3};
 use pyo3::prelude::*;
-use squaremat::SquareMatrix;
 
 use std::fmt;
 
@@ -38,11 +38,7 @@ impl Unitary for PyGate {
             .expect("Return of get_num_params could not be converted into integral type.")
     }
 
-    fn get_utry(
-        &self,
-        params: &[f64],
-        _const_gates: &[squaremat::SquareMatrix],
-    ) -> squaremat::SquareMatrix {
+    fn get_utry(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -58,12 +54,12 @@ impl Unitary for PyGate {
         }
         .extract::<Py<PyArray2<Complex64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
-        SquareMatrix::from_ndarray(pyarray.as_ref(py).to_owned_array())
+        pyarray.as_ref(py).to_owned_array()
     }
 }
 
 impl Gradient for PyGate {
-    fn get_grad(&self, params: &[f64], _const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -71,29 +67,25 @@ impl Gradient for PyGate {
             .gate
             .call_method1(py, "get_grad", args)
             .expect("Failed to call get_grad on passed gate.")
-            .extract::<Vec<PyObject>>(py)
+            .extract::<PyObject>(py)
             .unwrap();
-        pygrads
-            .iter()
-            .map(|pygrad| {
-                let grad = match pygrad.as_ref(py).hasattr("get_numpy").unwrap() {
-                    true => pygrad
-                        .call_method0(py, "get_numpy")
-                        .expect("Failed to convert UnitaryMatrix to ndarray."),
-                    false => pygrad.clone(),
-                }
-                .extract::<Py<PyArray2<Complex64>>>(py)
-                .expect("Failed to convert return of get_grad into complex matrix.");
-                SquareMatrix::from_ndarray(grad.as_ref(py).to_owned_array())
-            })
-            .collect()
+        match pygrads.as_ref(py).hasattr("get_numpy").unwrap() {
+            true => pygrads
+                .call_method0(py, "get_numpy")
+                .expect("Failed to convert UnitaryMatrix to ndarray."),
+            false => pygrads,
+        }
+        .extract::<Py<PyArray3<Complex64>>>(py)
+        .expect("Failed to convert return of get_grad into complex matrix.")
+        .as_ref(py)
+        .to_owned_array()
     }
 
     fn get_utry_and_grad(
         &self,
         params: &[f64],
-        _const_gates: &[SquareMatrix],
-    ) -> (SquareMatrix, Vec<SquareMatrix>) {
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -101,8 +93,9 @@ impl Gradient for PyGate {
             .gate
             .call_method1(py, "get_unitary_and_grad", args)
             .expect("Failed to call get_unitary_and_grad on passed gate.")
-            .extract::<(PyObject, Vec<PyObject>)>(py)
+            .extract::<(PyObject, PyObject)>(py)
             .expect("Failed to convert return of get_unitary_and_grad.");
+
         let pyarray = match pyutry.as_ref(py).hasattr("get_numpy").unwrap() {
             true => pyutry
                 .call_method0(py, "get_numpy")
@@ -111,22 +104,19 @@ impl Gradient for PyGate {
         }
         .extract::<Py<PyArray2<Complex64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
+
+        let grads = match pygrads.as_ref(py).hasattr("get_numpy").unwrap() {
+            true => pygrads
+                .call_method0(py, "get_numpy")
+                .expect("Failed to convert UnitaryMatrix to ndarray."),
+            false => pygrads,
+        }
+        .extract::<Py<PyArray3<Complex64>>>(py)
+        .expect("Failed to convert return of get_grad into complex matrix.");
+
         (
-            SquareMatrix::from_ndarray(pyarray.as_ref(py).to_owned_array()),
-            pygrads
-                .iter()
-                .map(|pygrad| {
-                    let grad = match pygrad.as_ref(py).hasattr("get_numpy").unwrap() {
-                        true => pygrad
-                            .call_method0(py, "get_numpy")
-                            .expect("Failed to convert UnitaryMatrix to ndarray."),
-                        false => pygrad.clone(),
-                    }
-                    .extract::<Py<PyArray2<Complex64>>>(py)
-                    .expect("Failed to convert return of get_grad into complex matrix.");
-                    SquareMatrix::from_ndarray(grad.as_ref(py).to_owned_array())
-                })
-                .collect(),
+            pyarray.as_ref(py).to_owned_array(),
+            grads.as_ref(py).to_owned_array(),
         )
     }
 }

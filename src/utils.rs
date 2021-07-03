@@ -1,6 +1,6 @@
-use ndarray::{s, Array2, Array4, Ix2};
+use ndarray::{s, Array1, Array2, Array3, Array4, ArrayView2, ArrayView3, Ix2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
+use squaremat::*;
 
 use crate::r;
 
@@ -31,64 +31,64 @@ pub fn argsort(v: Vec<usize>) -> Vec<usize> {
         .collect()
 }
 
-pub fn matrix_distance_squared(a: &SquareMatrix, b: &SquareMatrix) -> f64 {
+pub fn matrix_distance_squared(a: ArrayView2<Complex64>, b: ArrayView2<Complex64>) -> f64 {
     // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]
     // converted to
     // 1 - np.abs(np.sum(np.multiply(A,np.conj(B)))) / A.shape[0]
     let bc = b.conj();
-    let mul = a.multiply(&bc);
+    let mul = a.multiply(bc.view());
     let sum = mul.sum();
     let norm = sum.norm();
-    1f64 - norm / a.size as f64
+    1f64 - norm / a.shape()[0] as f64
 }
 
 pub fn matrix_distance_squared_jac(
-    u: &SquareMatrix,
-    m: &SquareMatrix,
-    j: Vec<SquareMatrix>,
+    u: ArrayView2<Complex64>,
+    m: ArrayView2<Complex64>,
+    j: ArrayView3<Complex64>,
 ) -> (f64, Vec<f64>) {
-    let s = u.multiply(&m.conj()).sum();
-    let dsq = 1f64 - s.norm() / u.size as f64;
+    let size = u.shape()[0];
+    let s = u.multiply(m.conj().view()).sum();
+    let dsq = 1f64 - s.norm() / size as f64;
     if s == r!(0.0) {
         return (dsq, vec![std::f64::INFINITY; j.len()]);
     }
-    let jus: Vec<Complex64> = j.iter().map(|ji| u.multiply(&ji.conj()).sum()).collect();
+    let jus: Vec<Complex64> = j
+        .outer_iter()
+        .map(|ji| u.multiply(ji.conj().view()).sum())
+        .collect();
     let jacs = jus
         .iter()
-        .map(|jusi| -(jusi.re * s.re + jusi.im * s.im) * u.size as f64 / s.norm())
+        .map(|jusi| -(jusi.re * s.re + jusi.im * s.im) * size as f64 / s.norm())
         .collect();
     (dsq, jacs)
 }
 
 /// Calculates the residuals
 pub fn matrix_residuals(
-    a_matrix: &SquareMatrix,
-    b_matrix: &SquareMatrix,
+    a_matrix: &Array2<Complex64>,
+    b_matrix: &Array2<Complex64>,
     identity: &Array2<f64>,
 ) -> Vec<f64> {
-    let calculated_mat = b_matrix.matmul(&a_matrix.H());
+    let calculated_mat = b_matrix.dot(&a_matrix.conj().reversed_axes());
     let (re, im) = calculated_mat.split_complex();
     let resid = re - identity;
     resid.iter().chain(im.iter()).copied().collect()
 }
 
 pub fn matrix_residuals_jac(
-    u: &SquareMatrix,
-    _m: &SquareMatrix,
-    jacs: &[SquareMatrix],
+    u: &Array2<Complex64>,
+    _m: &Array2<Complex64>,
+    jacs: &Array3<Complex64>,
 ) -> Array2<f64> {
-    let u_h = u.H();
-    Array2::from_shape_vec(
-        (jacs.len(), u.size * u.size * 2),
-        jacs.iter().fold(Vec::new(), |mut acc, j| {
-            let m = j.matmul(&u_h.clone());
-            let (re, im) = m.split_complex();
-            let row: Vec<f64> = re.iter().chain(im.iter()).copied().collect();
-            acc.extend(row);
-            acc
-        }),
-    )
-    .unwrap()
-    .t()
-    .to_owned()
+    let u_h = u.conj().reversed_axes();
+    let size = u.shape()[0];
+    let mut out = Array2::zeros((jacs.shape()[0], size * size * 2));
+    for (jac, mut row) in jacs.outer_iter().zip(out.rows_mut()) {
+        let m = jac.dot(&u_h);
+        let (re, im) = m.split_complex();
+        let data = Array1::from_vec(re.iter().chain(im.iter()).copied().collect());
+        row.assign(&data);
+    }
+    out.reversed_axes()
 }

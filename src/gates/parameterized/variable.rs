@@ -1,9 +1,8 @@
 use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
 
-use ndarray::{Array2, ArrayViewMut2};
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 use lax::{layout::MatrixLayout, UVTFlag, SVDDC_};
 
@@ -49,7 +48,7 @@ impl Unitary for VariableUnitaryGate {
         self.num_parameters
     }
 
-    fn get_utry(&self, params: &[f64], _constant_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], _constant_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         assert_eq!(self.num_params(), params.len());
         let mid = params.len() / 2;
         let (re, im) = params.split_at(mid);
@@ -62,12 +61,12 @@ impl Unitary for VariableUnitaryGate {
         let mut matrix = Array2::from_shape_vec((self.dim, self.dim), vec)
             .unwrap_or_else(|_| panic!("Got vec of length {}, self.dim is {}", len, self.dim));
         let (u, vt) = svd(matrix.view_mut());
-        SquareMatrix::from_ndarray(u.dot(&vt))
+        u.dot(&vt)
     }
 }
 
 impl Gradient for VariableUnitaryGate {
-    fn get_grad(&self, _params: &[f64], _const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, _params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         unimplemented!()
     }
 }

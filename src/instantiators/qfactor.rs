@@ -1,4 +1,7 @@
-use squaremat::SquareMatrix;
+use ndarray::Array2;
+use num_complex::Complex64;
+
+use squaremat::*;
 
 use super::Instantiate;
 use crate::gates::Optimize;
@@ -39,13 +42,13 @@ impl QFactorInstantiator {
     pub fn initialize_circuit_tensor(
         &self,
         circuit: &Circuit,
-        target: &SquareMatrix,
+        target: &Array2<Complex64>,
     ) -> UnitaryBuilder {
         let mut unitary_builder = UnitaryBuilder::new(circuit.size, circuit.radixes.clone());
         let entire_circ_location: Vec<usize> = (0..circuit.size).collect();
-        unitary_builder.apply_right(&target.H(), &entire_circ_location, false);
+        unitary_builder.apply_right(target.view(), &entire_circ_location, true);
         unitary_builder.apply_right(
-            &circuit.get_utry(&[], &circuit.constant_gates),
+            circuit.get_utry(&[], &circuit.constant_gates).view(),
             &entire_circ_location,
             false,
         );
@@ -56,20 +59,20 @@ impl QFactorInstantiator {
         // Start by looping backwards
         for op in circuit.ops.iter_mut().rev() {
             let gate = op.get_utry(&[], &circuit.constant_gates);
-            unitary_builder.apply_right(&gate, &op.location, true);
+            unitary_builder.apply_right(gate.view(), &op.location, true);
             if op.num_params() != 0 {
                 let mut env = unitary_builder.calc_env_matrix(&op.location);
                 let params = op.optimize(env.view_mut());
                 op.params.copy_from_slice(&params);
             }
             let gate = op.get_utry(&[], &circuit.constant_gates);
-            unitary_builder.apply_left(&gate, &op.location, false);
+            unitary_builder.apply_left(gate.view(), &op.location, false);
         }
 
         // reset for new loop through all the gates the opposite order
         for op in circuit.ops.iter_mut() {
             let gate = op.get_utry(&[], &circuit.constant_gates);
-            unitary_builder.apply_left(&gate, &op.location, true);
+            unitary_builder.apply_left(gate.view(), &op.location, true);
 
             if op.num_params() != 0 {
                 let mut env = unitary_builder.calc_env_matrix(&op.location);
@@ -77,13 +80,13 @@ impl QFactorInstantiator {
                 op.params.copy_from_slice(&params);
             }
             let gate = op.get_utry(&[], &circuit.constant_gates);
-            unitary_builder.apply_right(&gate, &op.location, false);
+            unitary_builder.apply_right(gate.view(), &op.location, false);
         }
     }
 }
 
 impl Instantiate for QFactorInstantiator {
-    fn instantiate(&self, mut circuit: Circuit, target: SquareMatrix, x0: &[f64]) -> Vec<f64> {
+    fn instantiate(&self, mut circuit: Circuit, target: Array2<Complex64>, x0: &[f64]) -> Vec<f64> {
         circuit.set_params(x0);
 
         let mut unitary_builder = self.initialize_circuit_tensor(&circuit, &target);

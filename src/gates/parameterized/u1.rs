@@ -5,9 +5,8 @@ use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
 use crate::i;
 
-use ndarray::ArrayViewMut2;
+use ndarray::{Array2, Array3, ArrayViewMut2, Axis};
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 /// IBM's U1 single qubit gate
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
@@ -24,17 +23,21 @@ impl Unitary for U1Gate {
         1
     }
 
-    fn get_utry(&self, params: &[f64], _constant_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], _constant_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         let phase = (i!(1.0) * params[0] / 2.0).exp();
         rot_z(params[0]) * phase
     }
 }
 
 impl Gradient for U1Gate {
-    fn get_grad(&self, params: &[f64], _const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let phase = (i!(1.0) * params[0] / 2.0).exp();
         let dphase = i!(1.0) / 2.0 * phase;
-        vec![rot_z(params[0]) * dphase + rot_z_jac(params[0]) * phase]
+        let z = rot_z(params[0]) * dphase + rot_z_jac(params[0]) * phase;
+        let mut out = Array3::zeros((1, 2, 2));
+        let mut arr = out.index_axis_mut(Axis(0), 0);
+        arr.assign(&z);
+        out
     }
 }
 

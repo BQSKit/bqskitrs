@@ -5,7 +5,9 @@ use crate::{
     unitary_builder::UnitaryBuilder,
 };
 
-use squaremat::SquareMatrix;
+use ndarray::{Array2, Array3};
+use num_complex::Complex64;
+use squaremat::*;
 
 /// A list of gates in a quantum circuit
 #[derive(Clone)]
@@ -13,7 +15,7 @@ pub struct Circuit {
     pub size: usize,
     pub radixes: Vec<usize>,
     pub ops: Vec<Operation>,
-    pub constant_gates: Vec<SquareMatrix>,
+    pub constant_gates: Vec<Array2<Complex64>>,
 }
 
 impl Circuit {
@@ -21,7 +23,7 @@ impl Circuit {
         size: usize,
         radixes: Vec<usize>,
         ops: Vec<Operation>,
-        constant_gates: Vec<SquareMatrix>,
+        constant_gates: Vec<Array2<Complex64>>,
     ) -> Self {
         Circuit {
             size,
@@ -54,7 +56,7 @@ impl Unitary for Circuit {
         self.ops.iter().map(|i| i.gate.num_params()).sum()
     }
 
-    fn get_utry(&self, params: &[f64], const_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         if !params.is_empty() {
             assert_eq!(params.len(), self.num_params());
             let mut param_idx = 0;
@@ -63,14 +65,14 @@ impl Unitary for Circuit {
                 let utry =
                     op.get_utry(&params[param_idx..param_idx + op.num_params()], const_gates);
                 param_idx += op.num_params();
-                builder.apply_right(&utry, &op.location, false);
+                builder.apply_right(utry.view(), &op.location, false);
             }
             builder.get_utry()
         } else {
             let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
             for op in &self.ops {
                 let utry = op.get_utry(&[], const_gates);
-                builder.apply_right(&utry, &op.location, false);
+                builder.apply_right(utry.view(), &op.location, false);
             }
             builder.get_utry()
         }
@@ -78,15 +80,15 @@ impl Unitary for Circuit {
 }
 
 impl Gradient for Circuit {
-    fn get_grad(&self, params: &[f64], const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         self.get_utry_and_grad(params, const_gates).1
     }
 
     fn get_utry_and_grad(
         &self,
         params: &[f64],
-        const_gates: &[SquareMatrix],
-    ) -> (SquareMatrix, Vec<SquareMatrix>) {
+        const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
         let mut matrices = vec![];
         let mut grads = vec![];
         let mut locations = vec![];
@@ -115,26 +117,34 @@ impl Gradient for Circuit {
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut full_grads = vec![];
         for (m, location) in matrices.iter().zip(locations.iter()) {
-            right.apply_right(m, location, false);
+            right.apply_right(m.view(), location, false);
         }
 
         for ((m, location), d_m) in matrices.iter().zip(locations.iter()).zip(grads) {
             let perm = calc_permutation_matrix(self.size, (*location).clone());
-            let perm_t = perm.T();
-            let id = SquareMatrix::eye(2usize.pow((self.size - location.len()) as u32));
+            let perm_t = perm.clone().reversed_axes();
+            let id = Array2::eye(2usize.pow((self.size - location.len()) as u32));
 
-            right.apply_left(m, location, true);
+            right.apply_left(m.view(), location, true);
             let right_utry = right.get_utry();
             let left_utry = left.get_utry();
-            for grad in d_m {
+            for grad in d_m.outer_iter() {
                 let mut full_grad = grad.kron(&id);
-                full_grad = perm.matmul(&full_grad);
-                full_grad = full_grad.matmul(&perm_t);
-                let right_grad = right_utry.matmul(&full_grad);
-                full_grads.push(right_grad.matmul(&left_utry));
+                full_grad = perm.dot(&full_grad);
+                full_grad = full_grad.dot(&perm_t);
+                let right_grad = right_utry.dot(&full_grad);
+                full_grads.push(right_grad.dot(&left_utry));
             }
-            left.apply_right(&m, location, false);
+            left.apply_right(m.view(), location, false);
         }
-        (left.get_utry(), full_grads)
+        let mut out_grad = Array3::zeros((
+            full_grads.len(),
+            2usize.pow(self.size as u32),
+            2usize.pow(self.size as u32),
+        ));
+        for (mut arr, grad) in out_grad.outer_iter_mut().zip(full_grads) {
+            arr.assign(&grad);
+        }
+        (left.get_utry(), out_grad)
     }
 }

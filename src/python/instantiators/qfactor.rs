@@ -1,7 +1,6 @@
 use num_complex::Complex64;
 use numpy::PyArray2;
 use pyo3::prelude::*;
-use squaremat::SquareMatrix;
 
 use crate::{
     circuit::Circuit,
@@ -53,7 +52,7 @@ impl PyQFactorInstantiator {
                 target_np.extract::<Py<PyArray2<Complex64>>>(py)?
             }
         };
-        let target_rs = SquareMatrix::from_ndarray(target_rs.as_ref(py).to_owned_array());
+        let target_rs = target_rs.as_ref(py).to_owned_array();
         Ok(self.instantiator.instantiate(circuit, target_rs, &x0))
     }
 }

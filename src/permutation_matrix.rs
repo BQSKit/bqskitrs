@@ -1,6 +1,8 @@
 use std::{ops::MulAssign, vec};
 
-use squaremat::SquareMatrix;
+use ndarray::Array2;
+use num_complex::Complex64;
+use squaremat::*;
 
 pub struct Permutation {
     perm: Vec<usize>,
@@ -95,7 +97,7 @@ pub fn swap(x: usize, y: usize, n: usize) -> Permutation {
     }
 }
 
-pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> SquareMatrix {
+pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array2<Complex64> {
     let max_qubit = location.iter().max().unwrap();
     let num_core_qubits = max_qubit + 1;
     let num_gate_qubits = location.len();
@@ -111,13 +113,13 @@ pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Squar
         }
     }
 
-    let mut mat = SquareMatrix::eye(2usize.pow(num_core_qubits as u32));
+    let mut mat = Array2::eye(2usize.pow(num_core_qubits as u32));
 
     for transposition in perm.transpositions() {
         mat.swap_rows(transposition.0, transposition.1);
     }
     if num_qubits - num_core_qubits > 0 {
-        let id = SquareMatrix::eye(2usize.pow((num_qubits - num_core_qubits) as u32));
+        let id = Array2::eye(2usize.pow((num_qubits - num_core_qubits) as u32));
         mat = mat.kron(&id);
     }
     mat

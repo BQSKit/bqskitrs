@@ -4,8 +4,9 @@ use crate::gates::Size;
 use crate::gates::Unitary;
 use crate::{i, r};
 
+use ndarray::Array2;
+use ndarray::Array3;
 use num_complex::Complex64;
-use squaremat::SquareMatrix;
 
 /// IBM's U3 single qubit gate
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
@@ -22,7 +23,7 @@ impl Unitary for U8Gate {
         8
     }
 
-    fn get_utry(&self, params: &[f64], _constant_gates: &[SquareMatrix]) -> SquareMatrix {
+    fn get_utry(&self, params: &[f64], _constant_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         let s1 = (params[0]).sin();
         let c1 = (params[0]).cos();
         let s2 = (params[1]).sin();
@@ -41,7 +42,8 @@ impl Unitary for U8Gate {
         let p5 = (i!(1.0) * params[7]).exp();
         let m5 = (i!(-1.0) * params[7]).exp();
 
-        SquareMatrix::from_vec(
+        Array2::from_shape_vec(
+            (3, 3),
             vec![
                 c1 * c2 * p1,
                 s1 * p3,
@@ -53,13 +55,13 @@ impl Unitary for U8Gate {
                 c1 * s3 * p5,
                 c2 * c3 * m1 * m2 - s1 * s2 * s3 * m3 * p4 * p5,
             ],
-            3,
         )
+        .unwrap()
     }
 }
 
 impl Gradient for U8Gate {
-    fn get_grad(&self, params: &[f64], _const_gates: &[SquareMatrix]) -> Vec<SquareMatrix> {
+    fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let s1 = (params[0]).sin();
         let c1 = (params[0]).cos();
         let s2 = (params[1]).sin();
@@ -77,8 +79,10 @@ impl Gradient for U8Gate {
         let m4 = (i!(-1.0) * params[6]).exp();
         let p5 = (i!(1.0) * params[7]).exp();
         let m5 = (i!(-1.0) * params[7]).exp();
-        let jt1 = SquareMatrix::from_vec(
+        Array3::from_shape_vec(
+            (3, 3, 8),
             vec![
+                // param 0
                 -s1 * c2 * p1,
                 c1 * p3,
                 -s1 * s2 * p4,
@@ -88,12 +92,7 @@ impl Gradient for U8Gate {
                 -c1 * c2 * s3 * p1 * m3 * p5,
                 -s1 * s3 * p5,
                 -c1 * s2 * s3 * m3 * p4 * p5,
-            ],
-            3,
-        );
-
-        let jt2 = SquareMatrix::from_vec(
-            vec![
+                // param 1
                 -c1 * s2 * p1,
                 r!(0.0),
                 c1 * c2 * p4,
@@ -103,12 +102,7 @@ impl Gradient for U8Gate {
                 s1 * s2 * s3 * p1 * m3 * p5 - c2 * c3 * m2 * m4,
                 r!(0.0),
                 -s2 * c3 * m1 * m2 - s1 * c2 * s3 * m3 * p4 * p5,
-            ],
-            3,
-        );
-
-        let jt3 = SquareMatrix::from_vec(
-            vec![
+                // param 2
                 r!(0.0),
                 r!(0.0),
                 r!(0.0),
@@ -118,12 +112,7 @@ impl Gradient for U8Gate {
                 -s1 * c2 * c3 * p1 * m3 * p5 + s2 * s3 * m2 * m4,
                 c1 * c3 * p5,
                 -c2 * s3 * m1 * m2 - s1 * s2 * c3 * m3 * p4 * p5,
-            ],
-            3,
-        );
-
-        let je1 = SquareMatrix::from_vec(
-            vec![
+                // param 3
                 i!(1.0) * c1 * c2 * p1,
                 r!(0.0),
                 r!(0.0),
@@ -133,12 +122,7 @@ impl Gradient for U8Gate {
                 -i!(1.0) * s1 * c2 * s3 * p1 * m3 * p5,
                 r!(0.0),
                 -i!(1.0) * c2 * c3 * m1 * m2,
-            ],
-            3,
-        );
-
-        let je2 = SquareMatrix::from_vec(
-            vec![
+                // param 4
                 r!(0.0),
                 r!(0.0),
                 r!(0.0),
@@ -148,12 +132,7 @@ impl Gradient for U8Gate {
                 i!(1.0) * s2 * c3 * m2 * m4,
                 r!(0.0),
                 -i!(1.0) * c2 * c3 * m1 * m2,
-            ],
-            3,
-        );
-
-        let je3 = SquareMatrix::from_vec(
-            vec![
+                // param 5
                 r!(0.0),
                 i!(1.0) * s1 * p3,
                 r!(0.0),
@@ -163,12 +142,7 @@ impl Gradient for U8Gate {
                 i!(1.0) * s1 * c2 * s3 * p1 * m3 * p5,
                 r!(0.0),
                 i!(1.0) * s1 * s2 * s3 * m3 * p4 * p5,
-            ],
-            3,
-        );
-
-        let je4 = SquareMatrix::from_vec(
-            vec![
+                // param 6
                 r!(0.0),
                 r!(0.0),
                 i!(1.0) * c1 * s2 * p4,
@@ -178,12 +152,7 @@ impl Gradient for U8Gate {
                 i!(1.0) * s2 * c3 * m2 * m4,
                 r!(0.0),
                 -i!(1.0) * s1 * s2 * s3 * m3 * p4 * p5,
-            ],
-            3,
-        );
-
-        let je5 = SquareMatrix::from_vec(
-            vec![
+                // param 7
                 r!(0.0),
                 r!(0.0),
                 r!(0.0),
@@ -194,10 +163,8 @@ impl Gradient for U8Gate {
                 i!(1.0) * c1 * s3 * p5,
                 -i!(1.0) * s1 * s2 * s3 * m3 * p4 * p5,
             ],
-            3,
-        );
-
-        vec![jt1, jt2, jt3, je1, je2, je3, je4, je5]
+        )
+        .unwrap()
     }
 }
 

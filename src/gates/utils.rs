@@ -1,6 +1,7 @@
 use ndarray::{Array2, Array3};
 use num_complex::Complex64;
 
+#[inline(always)]
 pub fn rot_x(theta: f64) -> Array2<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     let negi = Complex64::new(0.0, -1.0);
@@ -17,6 +18,7 @@ pub fn rot_x(theta: f64) -> Array2<Complex64> {
     }
 }
 
+#[inline(always)]
 pub fn rot_x_jac(theta: f64) -> Array3<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     let negi = Complex64::new(0.0, -1.0);
@@ -35,6 +37,7 @@ pub fn rot_x_jac(theta: f64) -> Array3<Complex64> {
     }
 }
 
+#[inline(always)]
 pub fn rot_y(theta: f64) -> Array2<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     unsafe {
@@ -50,6 +53,7 @@ pub fn rot_y(theta: f64) -> Array2<Complex64> {
     }
 }
 
+#[inline(always)]
 pub fn rot_y_jac(theta: f64) -> Array3<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     let neghalf = Complex64::new(-0.5, 0.0);
@@ -67,6 +71,7 @@ pub fn rot_y_jac(theta: f64) -> Array3<Complex64> {
     }
 }
 
+#[inline(always)]
 pub fn rot_z(theta: f64, phase: Option<Complex64>) -> Array2<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     let negi = Complex64::new(0.0, -1.0);
@@ -99,6 +104,7 @@ pub fn rot_z(theta: f64, phase: Option<Complex64>) -> Array2<Complex64> {
     }
 }
 
+#[inline(always)]
 pub fn rot_z_jac(theta: f64, phase: Option<Complex64>) -> Array3<Complex64> {
     let half_theta = Complex64::new(theta / 2.0, 0.0);
     let negi = Complex64::new(0.0, -1.0);

@@ -83,8 +83,8 @@ impl ResidualFn for HilbertSchmidtResidualFn {
     }
 
     fn num_residuals(&self) -> usize {
-        let size = self.target.shape()[0];
-        size * size * 2
+        let size = self.target.len();
+        size * 2
     }
 }
 
@@ -94,6 +94,16 @@ impl DifferentiableResidualFn for HilbertSchmidtResidualFn {
             .circ
             .get_utry_and_grad(params, &self.circ.constant_gates);
         matrix_residuals_jac(&self.target, &m, &j)
+    }
+
+    fn get_residuals_and_grad(&self, params: &[f64]) -> (Vec<f64>, Array2<f64>) {
+        let (m, j) = self
+            .circ
+            .get_utry_and_grad(params, &self.circ.constant_gates);
+        (
+            matrix_residuals(&self.target, &m, &self.eye),
+            matrix_residuals_jac(&self.target, &m, &j),
+        )
     }
 }
 

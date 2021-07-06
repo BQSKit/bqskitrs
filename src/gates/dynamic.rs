@@ -50,7 +50,7 @@ where
 
 impl<T> Optimize for Box<T>
 where
-    T: Optimize,
+    T: Optimize + DynGate,
 {
     fn optimize(&self, env_matrix: ArrayViewMut2<Complex64>) -> Vec<f64> {
         (**self).optimize(env_matrix)

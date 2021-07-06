@@ -95,6 +95,28 @@ impl Gradient for Gate {
             Gate::Dynamic(d) => d.get_grad(params, const_gates),
         }
     }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        match self {
+            Gate::Constant(c) => c.get_utry_and_grad(params, const_gates),
+            Gate::U1(u) => u.get_utry_and_grad(params, const_gates),
+            Gate::U2(u) => u.get_utry_and_grad(params, const_gates),
+            Gate::U3(u) => u.get_utry_and_grad(params, const_gates),
+            Gate::U8(u) => u.get_utry_and_grad(params, const_gates),
+            Gate::RX(x) => x.get_utry_and_grad(params, const_gates),
+            Gate::RY(y) => y.get_utry_and_grad(params, const_gates),
+            Gate::RZ(z) => z.get_utry_and_grad(params, const_gates),
+            Gate::RXX(x) => x.get_utry_and_grad(params, const_gates),
+            Gate::RYY(y) => y.get_utry_and_grad(params, const_gates),
+            Gate::RZZ(z) => z.get_utry_and_grad(params, const_gates),
+            Gate::VariableUnitary(v) => v.get_utry_and_grad(params, const_gates),
+            Gate::Dynamic(d) => d.get_utry_and_grad(params, const_gates),
+        }
+    }
 }
 
 impl Size for Gate {

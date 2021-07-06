@@ -49,6 +49,37 @@ impl Gradient for RZZGate {
         )
         .unwrap()
     }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        let pos = (i!(1.) * params[0] / 2.).exp();
+        let neg = (i!(-1.) * params[0] / 2.).exp();
+        let zero = r!(0.0);
+        let dpos = i!(1. / 2.) * (i!(1.) * params[0] / 2.).exp();
+        let dneg = i!(-1. / 2.) * (i!(-1.) * params[0] / 2.).exp();
+
+        (
+            Array2::from_shape_vec(
+                (4, 4),
+                vec![
+                    neg, zero, zero, zero, zero, pos, zero, zero, zero, zero, pos, zero, zero,
+                    zero, zero, neg,
+                ],
+            )
+            .unwrap(),
+            Array3::from_shape_vec(
+                (1, 4, 4),
+                vec![
+                    dneg, zero, zero, zero, zero, dpos, zero, zero, zero, zero, dpos, zero, zero,
+                    zero, zero, dneg,
+                ],
+            )
+            .unwrap(),
+        )
+    }
 }
 
 impl Size for RZZGate {

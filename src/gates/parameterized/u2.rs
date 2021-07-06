@@ -55,6 +55,37 @@ impl Gradient for U2Gate {
         )
         .unwrap()
     }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        let phase = r!(1.0) / r!(2.0f64.sqrt());
+        let e1 = (i!(1.0) * params[1]).exp();
+        let e2 = (i!(1.0) * params[0]).exp();
+        let e3 = (i!(1.0) * (params[0] + params[1])).exp();
+        (
+            Array2::from_shape_vec((2, 2), vec![phase, -phase * e1, phase * e2, phase * e3])
+                .unwrap(),
+            Array3::from_shape_vec(
+                (2, 2, 2),
+                vec![
+                    // param 0
+                    r!(0.0),
+                    r!(0.0),
+                    phase * i!(1.0) * e2,
+                    phase * i!(1.0) * e3,
+                    // param 1
+                    r!(0.0),
+                    phase * i!(-1.0) * e1,
+                    r!(0.0),
+                    phase * i!(1.0) * e3,
+                ],
+            )
+            .unwrap(),
+        )
+    }
 }
 
 impl Size for U2Gate {

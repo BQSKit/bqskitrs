@@ -5,7 +5,7 @@ use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
 use crate::i;
 
-use ndarray::{Array2, Array3, ArrayViewMut2, Axis};
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
 
 /// IBM's U1 single qubit gate
@@ -25,7 +25,7 @@ impl Unitary for U1Gate {
 
     fn get_utry(&self, params: &[f64], _constant_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         let phase = (i!(1.0) * params[0] / 2.0).exp();
-        rot_z(params[0]) * phase
+        rot_z(params[0], Some(phase))
     }
 }
 
@@ -33,11 +33,20 @@ impl Gradient for U1Gate {
     fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let phase = (i!(1.0) * params[0] / 2.0).exp();
         let dphase = i!(1.0) / 2.0 * phase;
-        let z = rot_z(params[0]) * dphase + rot_z_jac(params[0]) * phase;
-        let mut out = Array3::zeros((1, 2, 2));
-        let mut arr = out.index_axis_mut(Axis(0), 0);
-        arr.assign(&z);
-        out
+        rot_z(params[0], Some(dphase)) + rot_z_jac(params[0], Some(phase))
+    }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        let phase = (i!(1.0) * params[0] / 2.0).exp();
+        let dphase = i!(1.0) / 2.0 * phase;
+        (
+            rot_z(params[0], Some(phase)),
+            rot_z(params[0], Some(dphase)) + rot_z_jac(params[0], Some(phase)),
+        )
     }
 }
 

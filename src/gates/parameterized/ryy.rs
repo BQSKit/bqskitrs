@@ -51,6 +51,39 @@ impl Gradient for RYYGate {
         )
         .unwrap()
     }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        let cos = r!((params[0] / 2.).cos());
+        let nsin = i!(-1.0) * (params[0] / 2.).sin();
+        let psin = i!(1.0) * (params[0] / 2.).sin();
+        let zero = r!(0.0);
+        let dcos = -1. * r!(params[0] / 2.).sin() / 2.;
+        let dnsin = i!(-1.0) * (params[0] / 2.).cos() / 2.;
+        let dpsin = i!(1.0) * (params[0] / 2.).cos() / 2.;
+
+        (
+            Array2::from_shape_vec(
+                (4, 4),
+                vec![
+                    cos, zero, zero, psin, zero, cos, nsin, zero, zero, nsin, cos, zero, psin,
+                    zero, zero, cos,
+                ],
+            )
+            .unwrap(),
+            Array3::from_shape_vec(
+                (1, 4, 4),
+                vec![
+                    dcos, zero, zero, dpsin, zero, dcos, dnsin, zero, zero, dnsin, dcos, zero,
+                    dpsin, zero, zero, dcos,
+                ],
+            )
+            .unwrap(),
+        )
+    }
 }
 
 impl Size for RYYGate {

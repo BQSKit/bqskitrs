@@ -2,7 +2,7 @@ use crate::gates::utils::{rot_y, rot_y_jac};
 use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
 
-use ndarray::{Array2, Array3, ArrayViewMut2, Axis};
+use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
 
 /// Arbitrary Y rotation single qubit gate
@@ -27,10 +27,15 @@ impl Unitary for RYGate {
 
 impl Gradient for RYGate {
     fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
-        let mut out = Array3::zeros((1, 2, 2));
-        let mut arr = out.index_axis_mut(Axis(0), 0);
-        arr.assign(&rot_y_jac(params[0]));
-        out
+        rot_y_jac(params[0])
+    }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        (rot_y(params[0]), rot_y_jac(params[0]))
     }
 }
 

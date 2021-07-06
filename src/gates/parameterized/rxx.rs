@@ -22,7 +22,7 @@ impl Unitary for RXXGate {
 
     fn get_utry(&self, params: &[f64], _constant_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         let cos = r!((params[0] / 2.).cos());
-        let sin = i!(-1.0) * (params[0] / 2.).sin();
+        let sin = i!(-(params[0] / 2.).sin());
         let zero = r!(0.0);
         Array2::from_shape_vec(
             (4, 4),
@@ -38,7 +38,7 @@ impl Unitary for RXXGate {
 impl Gradient for RXXGate {
     fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let dcos = -1. * r!(params[0] / 2.).sin() / 2.;
-        let dsin = i!(-1.0) * (params[0] / 2.).cos() / 2.;
+        let dsin = i!(-(params[0] / 2.).cos() / 2.);
         let zero = r!(0.0);
         Array3::from_shape_vec(
             (1, 4, 4),
@@ -48,6 +48,36 @@ impl Gradient for RXXGate {
             ],
         )
         .unwrap()
+    }
+
+    fn get_utry_and_grad(
+        &self,
+        params: &[f64],
+        _const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        let cos = r!((params[0] / 2.).cos());
+        let sin = i!(-(params[0] / 2.).sin());
+        let dcos = -1. * r!(params[0] / 2.).sin() / 2.;
+        let dsin = i!(-(params[0] / 2.).cos() / 2.);
+        let zero = r!(0.0);
+        (
+            Array2::from_shape_vec(
+                (4, 4),
+                vec![
+                    cos, zero, zero, sin, zero, cos, sin, zero, zero, sin, cos, zero, sin, zero,
+                    zero, cos,
+                ],
+            )
+            .unwrap(),
+            Array3::from_shape_vec(
+                (1, 4, 4),
+                vec![
+                    dcos, zero, zero, dsin, zero, dcos, dsin, zero, zero, dsin, dcos, zero, dsin,
+                    zero, zero, dcos,
+                ],
+            )
+            .unwrap(),
+        )
     }
 }
 

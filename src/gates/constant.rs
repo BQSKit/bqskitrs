@@ -39,6 +39,14 @@ impl Gradient for ConstantGate {
     fn get_grad(&self, _params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         Array3::zeros((0, 0, 0))
     }
+
+    fn get_utry_and_grad(
+        &self,
+        _params: &[f64],
+        const_gates: &[Array2<Complex64>],
+    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        (const_gates[self.index].clone(), Array3::zeros((0, 0, 0)))
+    }
 }
 
 impl Optimize for ConstantGate {}

@@ -1,6 +1,3 @@
-use ndarray::Array2;
-use num_complex::Complex64;
-
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 extern crate cblas;

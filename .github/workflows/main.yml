@@ -39,6 +39,9 @@ jobs:
           run: sudo apt install libopenblas-dev libgfortran-9-dev libceres-dev
         - if: startsWith(matrix.os, 'macOS')
           run: brew install ceres-solver eigen lapack
+        - name: Make space for Windows stuff
+          run: curl https://github.com/dotnet/cli-lab/releases/download/1.2.206301/dotnet-core-uninstall-1.2.206301.msi -o D:\dotnet-core-uninstall.msi && msiexec /i D:\dotnet-core-uninstall.msi && dotnet-core-uninstall --all --force
+          if: startsWith(matrix.os, 'Windows')
         - if: startsWith(matrix.os, 'Windows')
           run: cargo install cargo-vcpkg && cargo vcpkg -v build
         - name: Build macOS wheels
@@ -46,9 +49,6 @@ jobs:
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'macOS')
-        - name: Make space for Windows stuff
-          run: dotnet-core-uninstall --all --force
-          if: startsWith(matrix.os, 'Windows')
         - name: Build Windows wheels
           run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static,openblas-src/system" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:

@@ -40,7 +40,7 @@ jobs:
         - if: startsWith(matrix.os, 'macOS')
           run: brew install ceres-solver eigen lapack
         - name: Make space for Windows stuff
-          run: Remove-Item "D:\Program Files\dotnet" -Recurse && Remove-Item $env:AGENT_TOOLSDIRECTORY -Recurse
+          run: Remove-Item $env:AGENT_TOOLSDIRECTORY -Recurse && Remove-Item "C:\Program Files\dotnet" -Recurse
           if: startsWith(matrix.os, 'Windows')
         - if: startsWith(matrix.os, 'Windows')
           run: cargo install cargo-vcpkg && cargo vcpkg -v build

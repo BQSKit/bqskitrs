@@ -13,11 +13,13 @@ fn svd(mut matrix: ArrayViewMut2<Complex64>) -> (Array2<Complex64>, Array2<Compl
         lda: size as i32,
     };
     let result = SVDDC_::svddc(layout, UVTFlag::Full, matrix.as_slice_mut().unwrap()).unwrap();
-
-    (
-        Array2::from_shape_vec((size, size), result.u.unwrap()).unwrap(),
-        Array2::from_shape_vec((size, size), result.vt.unwrap()).unwrap(),
-    )
+    // Safety: u/vt are the same size since matrix is a square matrix with sides of size `size`
+    unsafe {
+        (
+            Array2::from_shape_vec_unchecked((size, size), result.u.unwrap()),
+            Array2::from_shape_vec_unchecked((size, size), result.vt.unwrap()),
+        )
+    }
 }
 
 /// A variable n-qudit unitary gate

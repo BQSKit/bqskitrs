@@ -7,12 +7,12 @@ pub trait Trace {
 
 impl Trace for Array2<Complex64> {
     fn trace(&self) -> Complex64 {
-        self.diag().iter().sum()
+        self.diag().sum()
     }
 }
 
 impl Trace for ArrayView2<'_, Complex64> {
     fn trace(&self) -> Complex64 {
-        self.diag().iter().sum()
+        self.diag().sum()
     }
 }

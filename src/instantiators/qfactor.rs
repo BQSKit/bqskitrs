@@ -63,7 +63,7 @@ impl QFactorInstantiator {
             if op.num_params() != 0 {
                 let mut env = unitary_builder.calc_env_matrix(&op.location);
                 let params = op.optimize(env.view_mut());
-                op.params.copy_from_slice(&params);
+                op.params = params;
             }
             let gate = op.get_utry(&[], &circuit.constant_gates);
             unitary_builder.apply_left(gate.view(), &op.location, false);
@@ -77,7 +77,7 @@ impl QFactorInstantiator {
             if op.num_params() != 0 {
                 let mut env = unitary_builder.calc_env_matrix(&op.location);
                 let params = op.optimize(env.view_mut());
-                op.params.copy_from_slice(&params);
+                op.params = params;
             }
             let gate = op.get_utry(&[], &circuit.constant_gates);
             unitary_builder.apply_right(gate.view(), &op.location, false);

@@ -5,6 +5,8 @@ use crate::{
     unitary_builder::UnitaryBuilder,
 };
 
+use itertools::izip;
+
 use ndarray::{Array2, Array3};
 use num_complex::Complex64;
 use squaremat::*;
@@ -92,9 +94,11 @@ impl Gradient for Circuit {
         let mut matrices = vec![];
         let mut grads = vec![];
         let mut locations = vec![];
+        let mut num_grads = 0usize;
         if params.is_empty() {
             for op in &self.ops {
                 let (utry, grad) = op.get_utry_and_grad(&[], const_gates);
+                num_grads += grad.shape()[0];
                 matrices.push(utry);
                 grads.push(grad);
                 locations.push(&op.location);
@@ -106,6 +110,7 @@ impl Gradient for Circuit {
                     &params[param_idx..param_idx + op.num_params()],
                     const_gates,
                 );
+                num_grads += grad.shape()[0];
                 param_idx += op.num_params();
                 matrices.push(utry);
                 grads.push(grad);
@@ -115,12 +120,17 @@ impl Gradient for Circuit {
 
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
-        let mut full_grads = vec![];
+        let mut full_grads = Vec::with_capacity(num_grads);
+        let mut out_grad = Array3::zeros((
+            num_grads,
+            2usize.pow(self.size as u32),
+            2usize.pow(self.size as u32),
+        ));
         for (m, location) in matrices.iter().zip(locations.iter()) {
             right.apply_right(m.view(), location, false);
         }
 
-        for ((m, location), d_m) in matrices.iter().zip(locations.iter()).zip(grads) {
+        for (m, location, d_m) in izip!(matrices, locations, grads) {
             let perm = calc_permutation_matrix(self.size, (*location).clone());
             let perm_t = perm.clone().reversed_axes();
             let id = Array2::eye(2usize.pow((self.size - location.len()) as u32));
@@ -137,14 +147,11 @@ impl Gradient for Circuit {
             }
             left.apply_right(m.view(), location, false);
         }
-        let mut out_grad = Array3::zeros((
-            full_grads.len(),
-            2usize.pow(self.size as u32),
-            2usize.pow(self.size as u32),
-        ));
+
         for (mut arr, grad) in out_grad.outer_iter_mut().zip(full_grads) {
             arr.assign(&grad);
         }
+
         (left.get_utry(), out_grad)
     }
 }

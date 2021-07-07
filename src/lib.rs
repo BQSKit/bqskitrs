@@ -8,6 +8,11 @@ mod python;
 mod unitary_builder;
 mod utils;
 
+use mimalloc::MiMalloc;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
+
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
 #[cfg(feature = "mkl")]

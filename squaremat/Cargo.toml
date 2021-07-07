@@ -6,19 +6,29 @@ edition = "2018"
 build = "build.rs"
 
 [features]
-openblas-static = ["openblas-src", "blas-src/openblas", "openblas-src/static", "openblas-src/cblas"]
-openblas-system = ["openblas-src", "blas-src/openblas", "openblas-src/system", "openblas-src/cblas"]
+openblas-static = [
+    "openblas-src",
+    "blas-src/openblas",
+    "openblas-src/static",
+    "openblas-src/cblas",
+]
+openblas-system = [
+    "openblas-src",
+    "blas-src/openblas",
+    "openblas-src/system",
+    "openblas-src/cblas",
+]
 accelerate = ["accelerate-src", "blas-src/accelerate"]
 mkl = ["intel-mkl-src", "blas-src/intel-mkl"]
 
 [dependencies]
 num-complex = "0.4"
-cblas = { git = "https://github.com/blas-lapack-rs/cblas.git" }
-ndarray = { version = "0.15", features = ["blas"] }
-blas-src = { version = "0.8", default-features = false }
-openblas-src = { version = "0.10", default-features = false, optional = true }
-accelerate-src = { version = "0.3", optional = true }
-intel-mkl-src = { version = "0.5", optional = true }
+cblas = { git="https://github.com/blas-lapack-rs/cblas.git" }
+ndarray = { version="0.15", features=["blas"] }
+blas-src = { version="0.8", default-features=false }
+openblas-src = { version="0.10", default-features=false, optional=true }
+accelerate-src = { version="0.3", optional=true }
+intel-mkl-src = { version="0.5", optional=true }
 libc = "0.2"
 
 

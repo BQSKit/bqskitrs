@@ -46,11 +46,12 @@ jobs:
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'macOS')
-        - name: Build Windows wheels
-          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static,openblas-src/system" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
-          env:
-            RUST_BACKTRACE: 1
-          if: startsWith(matrix.os, 'Windows')
+        # TODO: this is filling up the disk, maybe try to not have it do that
+        # - name: Build Windows wheels
+        #  run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static,openblas-src/system" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+        #  env:
+        #    RUST_BACKTRACE: 1
+        #  if: startsWith(matrix.os, 'Windows')
         - name: Build Linux wheel
           run: pip install .
           env:

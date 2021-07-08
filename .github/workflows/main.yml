@@ -85,6 +85,6 @@ jobs:
           run: rm -rf target/wheels
           if: startsWith(matrix.os, 'macOS')
         - name: Remove target/wheels to clear some space
-          run: rmdir /s /q target\vcpkg && rmdir /s /q target\wheels
+          run: rmdir /s /q target\wheels
           shell: cmd
           if: startsWith(matrix.os, 'Windows')

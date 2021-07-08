@@ -21,8 +21,6 @@ jobs:
         python-version: [3.7]
         os: [windows-latest]
       fail-fast: false
-    env:
-      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
     steps:
         - name: checkout
           uses: actions/checkout@v2
@@ -45,7 +43,7 @@ jobs:
           run: Remove-Item -Recurse "C:\Program Files\dotnet" && Remove-Item -Recurse C:\Android
           if: startsWith(matrix.os, 'Windows')
         - if: startsWith(matrix.os, 'Windows')
-          run: cargo install cargo-vcpkg && vcpkg install ceres:x64-windows-static-md eigen3:x64-windows-static-md openblas:x64-windows-static-md glog:x64-windows-static-md gflags:x64-windows-static-md clapack:x64-windows-static-md
+          run: cargo install cargo-vcpkg && vcpkg install ceres:x64-windows-static-md eigen3:x64-windows-static-md openblas:x64-windows-static-md glog:x64-windows-static-md gflags:x64-windows-static-md clapack:x64-windows-static-md && vcpkg integrate install
         - name: Build macOS wheels
           run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features accelerate,ceres/static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:

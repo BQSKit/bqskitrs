@@ -40,10 +40,10 @@ jobs:
         - if: startsWith(matrix.os, 'macOS')
           run: brew install ceres-solver eigen lapack
         - name: Make space for Windows stuff
-          run: Remove-Item $env:AGENT_TOOLSDIRECTORY -Recurse && Remove-Item "C:\Program Files\dotnet" -Recurse
+          run: Remove-Item -Recurse "C:\Program Files\dotnet" && Remove-Item -Recurse C:\Android
           if: startsWith(matrix.os, 'Windows')
         - if: startsWith(matrix.os, 'Windows')
-          run: cargo install cargo-vcpkg && cargo vcpkg -v build
+          run: cargo install cargo-vcpkg && vcpkg install ceres:x64-windows-static-md eigen3:x64-windows-static-md openblas:x64-windows-static-md glog:x64-windows-static-md gflags:x64-windows-static-md clapack:x64-windows-static-md && vcpkg integrate install
         - name: Build macOS wheels
           run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features accelerate,ceres/static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:
@@ -85,6 +85,6 @@ jobs:
           run: rm -rf target/wheels
           if: startsWith(matrix.os, 'macOS')
         - name: Remove target/wheels to clear some space
-          run: rmdir /s /q target\vcpkg && rmdir /s /q target\wheels
+          run: rmdir /s /q target\wheels
           shell: cmd
           if: startsWith(matrix.os, 'Windows')

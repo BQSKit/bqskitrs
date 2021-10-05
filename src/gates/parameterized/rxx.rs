@@ -82,7 +82,7 @@ impl Gradient for RXXGate {
 }
 
 impl Size for RXXGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         2
     }
 }

@@ -87,7 +87,7 @@ impl Gradient for RYYGate {
 }
 
 impl Size for RYYGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         2
     }
 }

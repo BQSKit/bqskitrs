@@ -51,7 +51,7 @@ impl Gradient for U1Gate {
 }
 
 impl Size for U1Gate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

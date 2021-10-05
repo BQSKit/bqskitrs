@@ -32,10 +32,10 @@ impl Unitary for PyGate {
         let gil = Python::acquire_gil();
         let py = gil.python();
         self.gate
-            .call_method0(py, "get_num_params")
-            .expect("Failed to call get_num_params on passed gate.")
+            .getattr(py, "num_params")
+            .expect("Failed to call num_params on passed gate.")
             .extract::<usize>(py)
-            .expect("Return of get_num_params could not be converted into integral type.")
+            .expect("Return of num_params could not be converted into integral type.")
     }
 
     fn get_utry(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
@@ -122,14 +122,14 @@ impl Gradient for PyGate {
 }
 
 impl Size for PyGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         let gil = Python::acquire_gil();
         let py = gil.python();
         self.gate
-            .call_method0(py, "get_size")
-            .expect("Failed to call get_size on passed gate.")
+            .call_method0(py, "num_qudits")
+            .expect("Failed to call num_qudits on passed gate.")
             .extract::<usize>(py)
-            .expect("Failed to convert the return of get_size to an integer.")
+            .expect("Failed to convert the return of num_qudits to an integer.")
     }
 }
 

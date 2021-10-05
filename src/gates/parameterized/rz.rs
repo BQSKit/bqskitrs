@@ -42,7 +42,7 @@ impl Gradient for RZGate {
 }
 
 impl Size for RZGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

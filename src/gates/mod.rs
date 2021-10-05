@@ -120,9 +120,9 @@ impl Gradient for Gate {
 }
 
 impl Size for Gate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         match self {
-            Gate::Constant(c) => c.get_size(),
+            Gate::Constant(c) => c.num_qudits(),
             Gate::U1(_) => 1,
             Gate::U2(_) => 1,
             Gate::U3(_) => 1,
@@ -133,8 +133,8 @@ impl Size for Gate {
             Gate::RXX(_) => 2,
             Gate::RYY(_) => 2,
             Gate::RZZ(_) => 2,
-            Gate::VariableUnitary(v) => v.get_size(),
-            Gate::Dynamic(d) => d.get_size(),
+            Gate::VariableUnitary(v) => v.num_qudits(),
+            Gate::Dynamic(d) => d.num_qudits(),
         }
     }
 }

@@ -74,7 +74,7 @@ impl Gradient for VariableUnitaryGate {
 }
 
 impl Size for VariableUnitaryGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         self.size
     }
 }

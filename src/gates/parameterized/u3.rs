@@ -124,7 +124,7 @@ impl Gradient for U3Gate {
 }
 
 impl Size for U3Gate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

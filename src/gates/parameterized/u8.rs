@@ -297,7 +297,7 @@ impl Gradient for U8Gate {
 }
 
 impl Size for U8Gate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

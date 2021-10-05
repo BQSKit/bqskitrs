@@ -40,7 +40,7 @@ impl Gradient for RYGate {
 }
 
 impl Size for RYGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

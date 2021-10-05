@@ -43,8 +43,8 @@ impl<T> Size for Box<T>
 where
     T: DynGate,
 {
-    fn get_size(&self) -> usize {
-        (**self).get_size()
+    fn num_qudits(&self) -> usize {
+        (**self).num_qudits()
     }
 }
 

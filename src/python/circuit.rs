@@ -32,7 +32,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
         "U3Gate" => Ok(U3Gate::new().into()),
         "U8Gate" => Ok(U8Gate::new().into()),
         "VariableUnitaryGate" => {
-            let size = pygate.getattr("size")?.extract::<usize>()?;
+            let size = pygate.getattr("num_qudits")?.extract::<usize>()?;
             let radixes = pygate.getattr("radixes")?.extract::<Vec<usize>>()?;
             Ok(VariableUnitaryGate::new(size, radixes).into())
         }
@@ -44,7 +44,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
                     .call_method0("get_numpy")?
                     .extract::<&PyArray2<Complex64>>()?;
                 let mat = pymat.to_owned_array();
-                let gate_size = pygate.getattr("size")?.extract::<usize>()?;
+                let gate_size = pygate.getattr("num_qudits")?.extract::<usize>()?;
                 let index = constant_gates.len();
                 constant_gates.push(mat);
                 Ok(ConstantGate::new(index, gate_size).into())
@@ -68,8 +68,8 @@ impl<'source> FromPyObject<'source> for Circuit {
     fn extract(ob: &'source PyAny) -> PyResult<Self> {
         let gil = Python::acquire_gil();
         let py = gil.python();
-        let size = ob.call_method0("get_size")?.extract::<usize>()?;
-        let radixes = ob.call_method0("get_radixes")?.extract::<Vec<usize>>()?;
+        let size = ob.getattr("num_qudits")?.extract::<usize>()?;
+        let radixes = ob.getattr("radixes")?.extract::<Vec<usize>>()?;
         let circ_iter = ob.call_method0("operations")?;
         let iter = PyIterator::from_object(py, circ_iter)?;
         let mut ops = vec![];

@@ -89,7 +89,7 @@ impl Gradient for U2Gate {
 }
 
 impl Size for U2Gate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         1
     }
 }

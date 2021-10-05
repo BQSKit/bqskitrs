@@ -20,7 +20,7 @@ impl ConstantGate {
 }
 
 impl Size for ConstantGate {
-    fn get_size(&self) -> usize {
+    fn num_qudits(&self) -> usize {
         self.size
     }
 }

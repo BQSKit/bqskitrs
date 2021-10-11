@@ -100,7 +100,7 @@ impl PyHilberSchmidtResidualFn {
         let target = match name {
             "UnitaryMatrix" => {
                 let np = target_matrix
-                    .call_method0("get_numpy")?
+                    .getattr("numpy")?
                     .extract::<&PyArray2<Complex64>>()?;
                 np.to_owned_array()
             }

@@ -46,9 +46,9 @@ impl Unitary for PyGate {
             .gate
             .call_method1(py, "get_unitary", args)
             .expect("Failed to call get_unitary on passed gate.");
-        let pyarray = match pyutry.as_ref(py).hasattr("get_numpy").unwrap() {
+        let pyarray = match pyutry.as_ref(py).hasattr("numpy").unwrap() {
             true => pyutry
-                .call_method0(py, "get_numpy")
+                .getattr(py, "numpy")
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pyutry,
         }
@@ -69,9 +69,9 @@ impl Gradient for PyGate {
             .expect("Failed to call get_grad on passed gate.")
             .extract::<PyObject>(py)
             .unwrap();
-        match pygrads.as_ref(py).hasattr("get_numpy").unwrap() {
+        match pygrads.as_ref(py).hasattr("numpy").unwrap() {
             true => pygrads
-                .call_method0(py, "get_numpy")
+                .getattr(py, "numpy")
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pygrads,
         }
@@ -96,18 +96,18 @@ impl Gradient for PyGate {
             .extract::<(PyObject, PyObject)>(py)
             .expect("Failed to convert return of get_unitary_and_grad.");
 
-        let pyarray = match pyutry.as_ref(py).hasattr("get_numpy").unwrap() {
+        let pyarray = match pyutry.as_ref(py).hasattr("numpy").unwrap() {
             true => pyutry
-                .call_method0(py, "get_numpy")
+                .getattr(py, "numpy")
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pyutry,
         }
         .extract::<Py<PyArray2<Complex64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
 
-        let grads = match pygrads.as_ref(py).hasattr("get_numpy").unwrap() {
+        let grads = match pygrads.as_ref(py).hasattr("numpy").unwrap() {
             true => pygrads
-                .call_method0(py, "get_numpy")
+                .getattr(py, "numpy")
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pygrads,
         }

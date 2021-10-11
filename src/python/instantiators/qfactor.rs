@@ -48,7 +48,7 @@ impl PyQFactorInstantiator {
         let target_rs = match target.extract::<Py<PyArray2<Complex64>>>(py) {
             Ok(arr) => arr,
             Err(..) => {
-                let target_np = target.call_method0(py, "get_numpy")?;
+                let target_np = target.getattr(py, "numpy")?;
                 target_np.extract::<Py<PyArray2<Complex64>>>(py)?
             }
         };

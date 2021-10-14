@@ -74,7 +74,6 @@ jobs:
           with:
             name: bqskitrs-wheels-${{matrix.os}}
             path: target/wheels
-          if: startsWith(matrix.os, 'macOS')
         - name: Publish bqskitrs to PyPI
           env:
             TWINE_USERNAME: __token__

@@ -40,9 +40,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
             if pygate.getattr("num_params")?.extract::<usize>()? == 0 {
                 let args: Vec<f64> = vec![];
                 let pyobj = pygate.call_method("get_unitary", (args,), None)?;
-                let pymat = pyobj
-                    .getattr("numpy")?
-                    .extract::<&PyArray2<Complex64>>()?;
+                let pymat = pyobj.getattr("numpy")?.extract::<&PyArray2<Complex64>>()?;
                 let mat = pymat.to_owned_array();
                 let gate_size = pygate.getattr("num_qudits")?.extract::<usize>()?;
                 let index = constant_gates.len();

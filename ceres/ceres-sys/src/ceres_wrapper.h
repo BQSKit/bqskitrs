@@ -4,7 +4,7 @@
 #include <ceres/ceres.h>
 
 
-inline void ceres_solve_silent(ceres_problem_t *c_problem, size_t max_iters, size_t num_threads, double ftol, double gtol) {
+inline void ceres_solve_silent(ceres_problem_t *c_problem, size_t max_iters, size_t num_threads, double ftol, double gtol, bool report) {
     ceres::Problem* problem = reinterpret_cast<ceres::Problem*>(c_problem);
 
     ceres::Solver::Options options;
@@ -20,5 +20,7 @@ inline void ceres_solve_silent(ceres_problem_t *c_problem, size_t max_iters, siz
     ceres::Solver::Summary summary;
     ceres::Solve(options, problem, &summary);
     // good for debugging
-    //std::cout << summary.FullReport() << "\n";
+    if (report) {
+        std::cout << summary.FullReport() << "\n";
+    }
 }

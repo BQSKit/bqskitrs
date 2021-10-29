@@ -16,6 +16,7 @@ mod ffi {
             num_threads: usize,
             ftol: f64,
             gtol: f64,
+            report: bool
         );
         type ceres_problem_s = crate::ceres::ceres_problem_s;
         include!("ceres/c_api.h");

@@ -11,12 +11,13 @@ pub struct PyCeresJacSolver {
     num_threads: usize,
     ftol: f64,
     gtol: f64,
+    report: bool,
 }
 
 #[pymethods]
 impl PyCeresJacSolver {
     #[new]
-    fn new(num_threads: Option<usize>, ftol: Option<f64>, gtol: Option<f64>) -> Self {
+    fn new(num_threads: Option<usize>, ftol: Option<f64>, gtol: Option<f64>, report: Option<bool>) -> Self {
         let threads = if let Some(threads) = num_threads {
             threads
         } else {
@@ -32,17 +33,23 @@ impl PyCeresJacSolver {
         } else {
             1e-10 // Ceres documented default
         };
+        let report = if let Some(report) = report {
+            report
+        } else {
+            false
+        };
         Self {
             distance_metric: String::from("Residuals"),
             num_threads: threads,
             ftol,
             gtol,
+            report,
         }
     }
 
     fn minimize(&self, py: Python, cost_fn: PyObject, x0: PyObject) -> PyResult<Py<PyArray1<f64>>> {
         let x0_rust = x0.extract::<Vec<f64>>(py)?;
-        let solv = CeresJacSolver::new(self.num_threads, self.ftol, self.gtol);
+        let solv = CeresJacSolver::new(self.num_threads, self.ftol, self.gtol, self.report);
         let cost_fun = match cost_fn.extract::<ResidualFunction>(py) {
             Ok(fun) => Ok(fun),
             Err(err) => Err(PyTypeError::new_err(err.to_string())),

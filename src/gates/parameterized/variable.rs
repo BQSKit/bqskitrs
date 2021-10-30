@@ -71,6 +71,10 @@ impl Gradient for VariableUnitaryGate {
     fn get_grad(&self, _params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         unimplemented!()
     }
+
+    fn get_utry_and_grad(&self, _params: &[f64], _const_gates: &[Array2<Complex64>]) ->(Array2<Complex64>,Array3<Complex64>) {
+        unimplemented!()
+    }
 }
 
 impl Size for VariableUnitaryGate {

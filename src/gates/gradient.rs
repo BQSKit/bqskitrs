@@ -11,12 +11,7 @@ pub trait Gradient: Unitary {
         &self,
         params: &[f64],
         const_gates: &[Array2<Complex64>],
-    ) -> (Array2<Complex64>, Array3<Complex64>) {
-        (
-            self.get_utry(params, const_gates),
-            self.get_grad(params, const_gates),
-        )
-    }
+    ) -> (Array2<Complex64>, Array3<Complex64>);
 
     /// Get the gradient of `self`.
     fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64>;

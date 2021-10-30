@@ -1,4 +1,5 @@
 use ndarray::{s, Array1, Array2, Array3, Array4, ArrayView2, ArrayView3, Ix2};
+use ndarray_einsum_beta::einsum;
 use num_complex::Complex64;
 use squaremat::*;
 
@@ -35,10 +36,8 @@ pub fn matrix_distance_squared(a: ArrayView2<Complex64>, b: ArrayView2<Complex64
     // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]
     // converted to
     // 1 - np.abs(np.sum(np.multiply(A,np.conj(B)))) / A.shape[0]
-    let bc = b.conj();
-    let mul = a.multiply(bc.view());
-    let sum = mul.sum();
-    let norm = sum.norm();
+    let prod = einsum("ij,ij->", &[&a, &b.conj()]).unwrap();
+    let norm = prod.sum().norm();
     1f64 - norm / a.shape()[0] as f64
 }
 
@@ -55,7 +54,7 @@ pub fn matrix_distance_squared_jac(
     }
     let jus: Vec<Complex64> = j
         .outer_iter()
-        .map(|ji| u.multiply(ji.conj().view()).sum())
+        .map(|ji| einsum("ij,ij->", &[&u, &ji.conj()]).unwrap().sum())
         .collect();
     let jacs = jus
         .iter()

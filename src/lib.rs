@@ -1,9 +1,10 @@
-mod circuit;
-mod gates;
+pub mod circuit;
+pub mod gates;
 mod instantiators;
-mod minimizers;
-mod operation;
+pub mod minimizers;
+pub mod operation;
 mod permutation_matrix;
+#[cfg(feature = "python")]
 mod python;
 mod unitary_builder;
 mod utils;

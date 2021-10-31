@@ -1,6 +1,6 @@
 #[cfg(feature = "accelerate")]
 extern crate accelerate_src;
-extern crate cblas;
+extern crate cblas_sys;
 #[cfg(feature = "mkl")]
 extern crate intel_mkl_src;
 #[cfg(any(feature = "openblas-static", feature = "openblas-system"))]
@@ -29,6 +29,7 @@ macro_rules! i {
 
 mod conj;
 mod kron;
+mod matmul;
 mod multiply;
 mod split_complex;
 mod swap_rows;
@@ -36,6 +37,7 @@ mod trace;
 
 pub use conj::Conj;
 pub use kron::Kronecker;
+pub use matmul::Matmul;
 pub use multiply::Multiply;
 pub use split_complex::SplitComplex;
 pub use swap_rows::SwapRows;

@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 use numpy::PyArray1;
+use numpy::IntoPyArray;
 use pyo3::types::PyTuple;
 
 use crate::minimizers::BfgsJacSolver;
@@ -36,7 +37,7 @@ impl PyBfgsJacSolver {
             Err(err) => Err(PyTypeError::new_err(err.to_string())),
         }?;
         let x = solv.minimize(cost_fun, x0_rust);
-        Ok(PyArray1::from_vec(py, x).to_owned())
+        Ok(x.into_pyarray(py).to_owned())
     }
 
     pub fn __reduce__(slf: PyRef<Self>) -> PyResult<(PyObject, PyObject)> {

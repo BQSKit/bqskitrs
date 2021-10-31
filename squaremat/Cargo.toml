@@ -23,7 +23,7 @@ mkl = ["intel-mkl-src", "blas-src/intel-mkl"]
 
 [dependencies]
 num-complex = "0.4.0"
-cblas = { git="https://github.com/blas-lapack-rs/cblas.git" }
+cblas-sys = { version = "0.1.4" }
 ndarray = { version = "0.15.3", features = ["blas"] }
 blas-src = { version = "0.8.0", default-features = false }
 openblas-src = { version = "0.10.4", default-features = false, optional = true }

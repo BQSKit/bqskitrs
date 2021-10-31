@@ -3,6 +3,7 @@ use pyo3::{exceptions::PyTypeError, prelude::*, types::PyTuple};
 use crate::minimizers::{CeresJacSolver, Minimizer, ResidualFunction};
 
 use numpy::PyArray1;
+use numpy::IntoPyArray;
 
 #[pyclass(name = "LeastSquaresMinimizerNative", subclass, module = "bqskitrs")]
 pub struct PyCeresJacSolver {
@@ -55,7 +56,7 @@ impl PyCeresJacSolver {
             Err(err) => Err(PyTypeError::new_err(err.to_string())),
         }?;
         let x = solv.minimize(cost_fun, x0_rust);
-        Ok(PyArray1::from_vec(py, x).to_owned())
+        Ok(x.into_pyarray(py).to_owned())
     }
 
     pub fn __reduce__(slf: PyRef<Self>) -> PyResult<(PyObject, PyObject)> {

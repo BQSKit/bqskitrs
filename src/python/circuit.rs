@@ -11,6 +11,7 @@ use num_complex::Complex64;
 
 use numpy::PyArray2;
 use numpy::PyArray3;
+use numpy::IntoPyArray;
 use pyo3::exceptions;
 use pyo3::{prelude::*, types::PyIterator};
 
@@ -97,12 +98,12 @@ impl PyCircuit {
     }
 
     pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<Complex64>> {
-        PyArray2::from_array(py, &self.circ.get_utry(&params, &self.circ.constant_gates)).to_owned()
+        self.circ.get_utry(&params, &self.circ.constant_gates).into_pyarray(py).to_owned()
     }
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {
         let grad = self.circ.get_grad(&params, &self.circ.constant_gates);
-        PyArray3::from_array(py, &grad).to_owned()
+        grad.into_pyarray(py).to_owned()
     }
 
     pub fn get_unitary_and_grad(
@@ -114,8 +115,8 @@ impl PyCircuit {
             .circ
             .get_utry_and_grad(&params, &self.circ.constant_gates);
         (
-            PyArray2::from_array(py, &utry).to_owned(),
-            PyArray3::from_array(py, &grad).to_owned(),
+            utry.into_pyarray(py).to_owned(),
+            grad.into_pyarray(py).to_owned(),
         )
     }
 }

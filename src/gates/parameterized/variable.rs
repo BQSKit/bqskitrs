@@ -6,6 +6,8 @@ use num_complex::Complex64;
 
 use lax::{layout::MatrixLayout, UVTFlag, SVDDC_};
 
+use squaremat::Matmul;
+
 fn svd(mut matrix: ArrayViewMut2<Complex64>) -> (Array2<Complex64>, Array2<Complex64>) {
     let size = matrix.shape()[0];
     let layout = MatrixLayout::C {
@@ -63,7 +65,7 @@ impl Unitary for VariableUnitaryGate {
         let mut matrix = Array2::from_shape_vec((self.dim, self.dim), vec)
             .unwrap_or_else(|_| panic!("Got vec of length {}, self.dim is {}", len, self.dim));
         let (u, vt) = svd(matrix.view_mut());
-        u.dot(&vt)
+        u.matmul(&vt.view())
     }
 }
 

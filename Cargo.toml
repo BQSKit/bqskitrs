@@ -30,6 +30,7 @@ static = [
 ]
 default = [
     "python",
+    "mimalloc/local_dynamic_tls",
     "openblas-src",
     "blas-src/openblas",
     "openblas-src/system",
@@ -61,7 +62,7 @@ itertools = "0.10.1"
 pyo3 = { version = "0.14.5", optional = true, features = ["extension-module", "abi3-py37"] }
 lax = { git="https://github.com/rust-ndarray/ndarray-linalg.git", rev="c7f22aea" }
 derive_more = "0.99.16"
-mimalloc = { version = "0.1.26", default-features = false, features = ["local_dynamic_tls"] }
+mimalloc = { version = "0.1.26", optional = true, default-features = false, features = ["local_dynamic_tls"] }
 ndarray_einsum_beta = "0.7.0"
 
 [patch.crates-io]
@@ -81,6 +82,10 @@ criterion = "0.3"
 [[bench]]
 name = "bench_ceres"
 harness = false
+
+[[bin]]
+name = "run_qft4"
+path = "src/main.rs"
 
 [profile.release]
 lto = "fat"

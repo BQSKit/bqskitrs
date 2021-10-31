@@ -42,7 +42,7 @@ fn make_qft4_problem() -> (CeresJacSolver, HilbertSchmidtResidualFn, Vec<f64>) {
         ops.push(Operation::new(RZGate::new().into(), vec![position], vec![0.0]));
         ops.push(Operation::new(RXGate::new().into(), vec![position], vec![0.0]));
         ops.push(Operation::new(RZGate::new().into(), vec![position], vec![0.0]));
-        ops.push(Operation::new(U3Gate::new().into(), vec![position + 1], vec![0.0]));
+        ops.push(Operation::new(U3Gate::new().into(), vec![position + 1], vec![0.0; 3]));
     }
     let circ = Circuit::new(4, vec![2; 4], ops, constant_gates);
     let cost = HilbertSchmidtResidualFn::new(circ, qft(16));
@@ -58,7 +58,7 @@ fn bench(c: &mut Criterion) {
 
     // Setup (construct data, allocate memory, etc)
     let (minimizer, cost, x0) = make_qft4_problem();
-    let mut group = c.benchmark_group("qft4");
+    let mut group = c.benchmark_group("ceres");
    
     group
     .sample_size(20)

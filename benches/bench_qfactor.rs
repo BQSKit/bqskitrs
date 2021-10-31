@@ -1,8 +1,10 @@
+use criterion::Criterion;
+use criterion::{criterion_group, criterion_main};
 
 use bqskitrs::circuit::Circuit;
 use bqskitrs::operation::Operation;
 use bqskitrs::gates::*;
-use bqskitrs::minimizers::*;
+use bqskitrs::instantiators::*;
 use bqskitrs::{r, i};
 
 use ndarray::Array2;
@@ -19,11 +21,11 @@ extern "C" {
     fn srand(seed: u32);
 }
 
-fn optimize_qft4(minimizer: &CeresJacSolver, cost: HilbertSchmidtResidualFn, x0: Vec<f64>) -> Vec<f64>{
-    minimizer.minimize(ResidualFunction::HilbertSchmidt(cost), x0.clone())
+fn optimize_qft4(instantiator: &QFactorInstantiator, circ: Circuit, target: Array2<Complex64>, x0: &[f64]) {
+    let _x = instantiator.instantiate(circ, target, x0);
 }
 
-fn make_qft4_problem() -> (CeresJacSolver, HilbertSchmidtResidualFn, Vec<f64>) {
+fn make_qft4_problem() -> (QFactorInstantiator, Circuit, Array2<Complex64>, Vec<f64>) {
     let mut ops = vec![];
     let mut constant_gates = vec![];
     // CNOT
@@ -32,7 +34,7 @@ fn make_qft4_problem() -> (CeresJacSolver, HilbertSchmidtResidualFn, Vec<f64>) {
     let positions = vec![2,0,1,2,2,0,1,0,2,1,0,1,2,1,2,0];
     // Fill in the first layer
     for i in 0..4 {
-        ops.push(Operation::new(U3Gate::new().into(), vec![i], vec![0.0; 3]));
+        ops.push(Operation::new(VariableUnitaryGate::new(1, vec![2]).into(), vec![i], vec![0.0; 8]));
     }
     for position in positions {
         ops.push(Operation::new(ConstantGate::new(0, 2).into(), vec![position, position + 1], vec![]));
@@ -40,22 +42,33 @@ fn make_qft4_problem() -> (CeresJacSolver, HilbertSchmidtResidualFn, Vec<f64>) {
         ops.push(Operation::new(RZGate::new().into(), vec![position], vec![0.0]));
         ops.push(Operation::new(RXGate::new().into(), vec![position], vec![0.0]));
         ops.push(Operation::new(RZGate::new().into(), vec![position], vec![0.0]));
-        ops.push(Operation::new(U3Gate::new().into(), vec![position + 1], vec![0.0]));
+        ops.push(Operation::new(VariableUnitaryGate::new(1, vec![2]).into(), vec![position + 1], vec![0.0; 8]));
     }
     let circ = Circuit::new(4, vec![2; 4], ops, constant_gates);
-    let cost = HilbertSchmidtResidualFn::new(circ, qft(16));
-    let minimizer = CeresJacSolver::new(1, 1e-6, 1e-10, false);
-    let x0 = vec![0.0;124];
-    (minimizer, cost, x0)
+    let instantiator = QFactorInstantiator::new(None, None, None, None, None, None, None);
+
+    let x0 = vec![0.; circ.num_params()];
+    (instantiator, circ, qft(16), x0)
 }
 
-fn main() {
+fn bench(c: &mut Criterion) {
     // Set random seed for reproducability
     unsafe { srand(21211411) }
     
 
     // Setup (construct data, allocate memory, etc)
-    let (minimizer, cost, x0) = make_qft4_problem();
-    let x= optimize_qft4(&minimizer, cost, x0);
-    assert!(x.iter().sum::<f64>() != 0.);
+    let (instantiator, circ, target, x0) = make_qft4_problem();
+    let mut group = c.benchmark_group("qfactor");
+   
+    group
+    .sample_size(20)
+    .bench_function(
+        "optimize_qft4",
+        |b| b.iter(|| {
+            optimize_qft4(&instantiator, circ.clone(), target.clone(), &x0);
+        }),
+    );
 }
+
+criterion_group!(benches, bench);
+criterion_main!(benches);

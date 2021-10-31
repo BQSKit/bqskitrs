@@ -83,9 +83,10 @@ criterion = "0.3"
 name = "bench_ceres"
 harness = false
 
-[[bin]]
-name = "run_qft4"
-path = "src/main.rs"
+[[bench]]
+name = "bench_qfactor"
+harness = false
+
 
 [profile.release]
 lto = "fat"

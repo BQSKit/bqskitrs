@@ -1,6 +1,6 @@
 pub mod circuit;
 pub mod gates;
-mod instantiators;
+pub mod instantiators;
 pub mod minimizers;
 pub mod operation;
 mod permutation_matrix;

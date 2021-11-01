@@ -69,7 +69,7 @@ pub fn matrix_residuals(
     b_matrix: &Array2<Complex64>,
     identity: &Array2<f64>,
 ) -> Vec<f64> {
-    let calculated_mat = b_matrix.matmul(&a_matrix.conj().t());
+    let calculated_mat = b_matrix.matmul(a_matrix.conj().t());
     let (re, im) = calculated_mat.split_complex();
     let resid = re - identity;
     resid.iter().chain(im.iter()).copied().collect()
@@ -84,7 +84,7 @@ pub fn matrix_residuals_jac(
     let size = u.shape()[0];
     let mut out = Array2::zeros((jacs.shape()[0], size * size * 2));
     for (jac, mut row) in jacs.outer_iter().zip(out.rows_mut()) {
-        let m = jac.matmul(&u_conj.t());
+        let m = jac.matmul(u_conj.t());
         let (re, im) = m.split_complex();
         let data = Array1::from_vec(re.iter().chain(im.iter()).copied().collect());
         row.assign(&data);

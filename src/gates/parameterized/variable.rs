@@ -65,7 +65,7 @@ impl Unitary for VariableUnitaryGate {
         let mut matrix = Array2::from_shape_vec((self.dim, self.dim), vec)
             .unwrap_or_else(|_| panic!("Got vec of length {}, self.dim is {}", len, self.dim));
         let (u, vt) = svd(matrix.view_mut());
-        u.matmul(&vt.view())
+        u.matmul(vt.view())
     }
 }
 
@@ -94,7 +94,7 @@ impl Optimize for VariableUnitaryGate {
         let (mut u, mut vt) = svd(env_matrix.view_mut());
         u.map_inplace(|i| *i = i.conj());
         vt.map_inplace(|i| *i = i.conj());
-        let mat = vt.t().dot(&u.t());
+        let mat = vt.t().matmul(u.t());
         let mut ret = vec![0.0; self.num_parameters];
         for (i, cmplx) in mat.iter().enumerate() {
             ret[i % (self.num_parameters / 2)] = cmplx.re;

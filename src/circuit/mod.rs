@@ -140,10 +140,10 @@ impl Gradient for Circuit {
             let left_utry = left.get_utry();
             for grad in d_m.outer_iter() {
                 let mut full_grad = grad.kron(&id);
-                full_grad = perm.matmul(&full_grad.view());
-                full_grad = full_grad.matmul(&perm_t.view());
-                let right_grad = right_utry.matmul(&full_grad.view());
-                full_grads.push(right_grad.matmul(&left_utry.view()));
+                full_grad = perm.matmul(full_grad.view());
+                full_grad = full_grad.matmul(perm_t.view());
+                let right_grad = right_utry.matmul(full_grad.view());
+                full_grads.push(right_grad.matmul(left_utry.view()));
             }
             left.apply_right(m.view(), location, false);
         }

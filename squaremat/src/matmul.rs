@@ -83,7 +83,6 @@ impl Matmul for CowArray<'_, Complex64, Ix2> {
     }
 }
 
-
 impl Matmul for Array2<Complex64> {
     fn matmul(&self, other: &ArrayView2<Complex64>) -> Array2<Complex64> {
         let ((mut m, a), (_, mut n)) = (self.dim(), other.dim());
@@ -158,7 +157,6 @@ impl Matmul for Array2<Complex64> {
         out
     }
 }
-
 
 impl Matmul for ArrayView2<'_, Complex64> {
     fn matmul(&self, other: &ArrayView2<Complex64>) -> Array2<Complex64> {

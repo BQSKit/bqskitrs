@@ -9,9 +9,9 @@ use crate::operation::Operation;
 use ndarray::Array2;
 use num_complex::Complex64;
 
+use numpy::IntoPyArray;
 use numpy::PyArray2;
 use numpy::PyArray3;
-use numpy::IntoPyArray;
 use pyo3::exceptions;
 use pyo3::{prelude::*, types::PyIterator};
 
@@ -98,7 +98,10 @@ impl PyCircuit {
     }
 
     pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<Complex64>> {
-        self.circ.get_utry(&params, &self.circ.constant_gates).into_pyarray(py).to_owned()
+        self.circ
+            .get_utry(&params, &self.circ.constant_gates)
+            .into_pyarray(py)
+            .to_owned()
     }
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {

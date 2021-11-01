@@ -2,8 +2,8 @@ use pyo3::{exceptions::PyTypeError, prelude::*, types::PyTuple};
 
 use crate::minimizers::{CeresJacSolver, Minimizer, ResidualFunction};
 
-use numpy::PyArray1;
 use numpy::IntoPyArray;
+use numpy::PyArray1;
 
 #[pyclass(name = "LeastSquaresMinimizerNative", subclass, module = "bqskitrs")]
 pub struct PyCeresJacSolver {
@@ -18,7 +18,12 @@ pub struct PyCeresJacSolver {
 #[pymethods]
 impl PyCeresJacSolver {
     #[new]
-    fn new(num_threads: Option<usize>, ftol: Option<f64>, gtol: Option<f64>, report: Option<bool>) -> Self {
+    fn new(
+        num_threads: Option<usize>,
+        ftol: Option<f64>,
+        gtol: Option<f64>,
+        report: Option<bool>,
+    ) -> Self {
         let threads = if let Some(threads) = num_threads {
             threads
         } else {

@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
-use numpy::PyArray1;
 use numpy::IntoPyArray;
+use numpy::PyArray1;
 use pyo3::types::PyTuple;
 
 use crate::minimizers::BfgsJacSolver;

@@ -6,8 +6,8 @@ use crate::{
 };
 use ndarray::Array2;
 use num_complex::Complex64;
-use numpy::{PyArray1, PyArray2};
 use numpy::IntoPyArray;
+use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
 
 struct PyResidualFn {

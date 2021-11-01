@@ -60,12 +60,13 @@ nlopt = "0.5.4"
 ceres = { path="./ceres" }
 itertools = "0.10.1"
 pyo3 = { version = "0.14.5", optional = true, features = ["extension-module", "abi3-py37"] }
-lax = { git="https://github.com/rust-ndarray/ndarray-linalg.git", rev="c7f22aea" }
+lax = "0.2.0"
 derive_more = "0.99.16"
 mimalloc = { version = "0.1.26", optional = true, default-features = false, features = ["local_dynamic_tls"] }
 ndarray_einsum_beta = "0.7.0"
 
 [patch.crates-io]
+# remove once https://github.com/blas-lapack-rs/blas-src/pull/9 is merged
 blas-src = { git="https://github.com/ethanhs/blas-src", branch="patch-1" }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]

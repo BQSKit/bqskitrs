@@ -21,7 +21,8 @@ extern crate accelerate_src;
 #[cfg(feature = "mkl")]
 extern crate intel_mkl_src;
 #[cfg(any(feature = "static", feature = "default"))]
-extern crate openblas_src;
+#[link(name = "openblas")]
+extern "C" {}
 
 #[macro_export]
 macro_rules! c {

@@ -68,6 +68,8 @@ ndarray_einsum_beta = "0.7.0"
 [patch.crates-io]
 # remove once https://github.com/blas-lapack-rs/blas-src/pull/9 is merged
 blas-src = { git="https://github.com/ethanhs/blas-src", branch="patch-1" }
+# Waiting on openblas-src to make a new 0.11 release...
+openblas-src = { git="https://github.com/blas-lapack-rs/openblas-src" }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 vcpkg = "0.2.15"

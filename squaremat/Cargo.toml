@@ -33,6 +33,8 @@ libc = "0.2.104"
 
 [patch.crates-io]
 blas-src = { git="https://github.com/ethanhs/blas-src", branch="patch-1" }
+# Waiting on openblas-src to make a new 0.11 release...
+openblas-src = { git="https://github.com/blas-lapack-rs/openblas-src" }
 
 [lib]
 name = "squaremat"

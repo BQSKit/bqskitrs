@@ -4,7 +4,8 @@ extern crate cblas_sys;
 #[cfg(feature = "mkl")]
 extern crate intel_mkl_src;
 #[cfg(any(feature = "openblas-static", feature = "openblas-system"))]
-extern crate openblas_src;
+#[link(name = "openblas")]
+extern "C" {}
 
 #[macro_export]
 macro_rules! c {

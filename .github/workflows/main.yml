@@ -45,12 +45,12 @@ jobs:
         - if: startsWith(matrix.os, 'Windows')
           run: cargo install cargo-vcpkg && vcpkg install ceres:x64-windows-static-md eigen3:x64-windows-static-md openblas:x64-windows-static-md glog:x64-windows-static-md gflags:x64-windows-static-md clapack:x64-windows-static-md && vcpkg integrate install
         - name: Build macOS wheels
-          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features accelerate,ceres/static" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features python,accelerate,ceres/static,mimalloc/local_dynamic_tls" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'macOS')
         - name: Build Windows wheels
-          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features static,openblas-src/system" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
+          run: pip install maturin && maturin build --cargo-extra-args="--no-default-features --features python,static,openblas-src/system,mimalloc/local_dynamic_tls" --release --no-sdist && pip install --no-index --find-links=target/wheels bqskitrs
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'Windows')
@@ -65,7 +65,7 @@ jobs:
           run: rm -rf target
           if: startsWith(matrix.os, 'ubuntu')
         - name: Build manylinux wheels
-          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features static" --release --manylinux 2014 --no-sdist --skip-auditwheel
+          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features python,static,mimalloc/local_dynamic_tls" --release --manylinux 2014 --no-sdist --skip-auditwheel
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'ubuntu')

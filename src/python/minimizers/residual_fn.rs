@@ -6,6 +6,7 @@ use crate::{
 };
 use ndarray::Array2;
 use num_complex::Complex64;
+use numpy::IntoPyArray;
 use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
 
@@ -72,7 +73,7 @@ impl DifferentiableResidualFn for PyResidualFn {
                 .expect("Return type of get_grad was not a matrix of floats."),
             Err(..) => panic!("Failed to call 'get_grad' on passed ResidualFunction."), // TODO: make a Python exception?
         };
-        pyarray.as_ref(py).to_owned_array()
+        pyarray.into_ref(py).to_owned_array()
     }
 
     fn get_residuals_and_grad(&self, params: &[f64]) -> (Vec<f64>, Array2<f64>) {
@@ -137,7 +138,7 @@ impl PyHilberSchmidtResidualFn {
         params: Vec<f64>,
     ) -> (Vec<f64>, Py<PyArray2<f64>>) {
         let (residuals, grad) = self.cost_fn.get_residuals_and_grad(&params);
-        (residuals, PyArray2::from_array(py, &grad).to_owned())
+        (residuals, grad.into_pyarray(py).to_owned())
     }
 }
 

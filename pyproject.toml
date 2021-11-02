@@ -8,9 +8,10 @@ build-backend = "maturin"
 
 [tool.maturin]
 manylinux = "off"
+bindings = "pyo3"
 # To use Apple's Accelerate framework, uncomment the following line
-#cargo-extra-args = "--no-default-features --features=accelerate,ceres/static"
+#cargo-extra-args = "--no-default-features --features=python,accelerate,ceres/static,mimalloc/local_dynamic_tls"
 # To use Intel's MKL, uncomment the following line
-#cargo-extra-args = "--no-default-features --features=mkl"
+#cargo-extra-args = "--no-default-features --features=python,mkl,mimalloc/local_dynamic_tls"
 # On Windows we statically link to ceres and other dependencies
-#cargo-extra-args="--no-default-features --features=static"
+#cargo-extra-args="--no-default-features --features=python,static,mimalloc/local_dynamic_tls"

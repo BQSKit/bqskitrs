@@ -37,7 +37,8 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyCircuit>()?;
     m.add_class::<PyQFactorInstantiator>()?;
 
-    #[pyfn(m, "calc_permutation_matrix")]
+    #[pyfn(m)]
+    #[pyo3(name = "calc_permutation_matrix")]
     fn calc_permutation_matrix_py(
         py: Python,
         num_qubits: usize,
@@ -46,19 +47,22 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
         PyArray2::from_array(py, &calc_permutation_matrix(num_qubits, location)).to_owned()
     }
 
-    #[pyfn(m, "swap_bit")]
+    #[pyfn(m)]
+    #[pyo3(name = "swap_bit")]
     fn swap_bit_py(i: usize, j: usize, b: usize) -> usize {
         swap_bit(i, j, b)
     }
 
-    #[pyfn(m, "matrix_distance_squared")]
+    #[pyfn(m)]
+    #[pyo3(name = "matrix_distance_squared")]
     fn matrix_distance_squared_py(
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
     ) -> f64 {
         matrix_distance_squared(a.as_array(), b.as_array())
     }
-    #[pyfn(m, "matrix_distance_squared_jac")]
+    #[pyfn(m)]
+    #[pyo3(name = "matrix_distance_squared_jac")]
     fn matrix_distance_squared_jac_py(
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
@@ -66,7 +70,8 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> (f64, Vec<f64>) {
         matrix_distance_squared_jac(a.as_array(), b.as_array(), jacs.as_array())
     }
-    #[pyfn(m, "matrix_residuals")]
+    #[pyfn(m)]
+    #[pyo3(name = "matrix_residuals")]
     fn matrix_residuals_py(
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
@@ -78,7 +83,8 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
             &eye.to_owned_array(),
         )
     }
-    #[pyfn(m, "matrix_residuals_jac")]
+    #[pyfn(m)]
+    #[pyo3(name = "matrix_residuals_jac")]
     fn matrix_residuals_jac_py(
         py: Python,
         u: PyReadonlyArray2<Complex64>,

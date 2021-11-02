@@ -20,4 +20,4 @@ repos:
         hooks:
         -   id: fmt
         -   id: clippy
-            args: ['--features', 'static']
+            args: ['--features', 'static,mimalloc/local_dynamic_tls']

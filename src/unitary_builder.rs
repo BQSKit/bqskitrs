@@ -59,7 +59,7 @@ impl UnitaryBuilder {
         let reshaped = permuted
             .to_shape((left_dim, dim / left_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = unitary.dot(&reshaped);
+        let prod = unitary.matmul(reshaped.view());
 
         let radixes = [&self.radixes[..], &self.radixes[..]].concat();
         let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
@@ -103,7 +103,7 @@ impl UnitaryBuilder {
         let reshaped = permuted
             .to_shape((dim / right_dim, right_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = reshaped.dot(&unitary);
+        let prod = reshaped.matmul(unitary.view());
         let radixes = [&self.radixes[..], &self.radixes[..]].concat();
         let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
         let reshape_back = prod

@@ -54,7 +54,7 @@ impl Unitary for PyGate {
         }
         .extract::<Py<PyArray2<Complex64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
-        pyarray.as_ref(py).to_owned_array()
+        pyarray.into_ref(py).to_owned_array()
     }
 }
 
@@ -77,7 +77,7 @@ impl Gradient for PyGate {
         }
         .extract::<Py<PyArray3<Complex64>>>(py)
         .expect("Failed to convert return of get_grad into complex matrix.")
-        .as_ref(py)
+        .into_ref(py)
         .to_owned_array()
     }
 
@@ -115,8 +115,8 @@ impl Gradient for PyGate {
         .expect("Failed to convert return of get_grad into complex matrix.");
 
         (
-            pyarray.as_ref(py).to_owned_array(),
-            grads.as_ref(py).to_owned_array(),
+            pyarray.into_ref(py).to_owned_array(),
+            grads.into_ref(py).to_owned_array(),
         )
     }
 }

@@ -7,9 +7,9 @@ pub struct CeresJacSolver {
 }
 
 impl CeresJacSolver {
-    pub fn new(num_threads: usize, ftol: f64, gtol: f64) -> Self {
+    pub fn new(num_threads: usize, ftol: f64, gtol: f64, report: bool) -> Self {
         CeresJacSolver {
-            solver: CeresSolver::new(num_threads, ftol, gtol),
+            solver: CeresSolver::new(num_threads, ftol, gtol, report),
         }
     }
 }

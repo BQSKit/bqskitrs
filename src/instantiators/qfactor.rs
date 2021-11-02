@@ -87,6 +87,13 @@ impl QFactorInstantiator {
 
 impl Instantiate for QFactorInstantiator {
     fn instantiate(&self, mut circuit: Circuit, target: Array2<Complex64>, x0: &[f64]) -> Vec<f64> {
+        if x0.len() != circuit.num_params() {
+            panic!(
+                "Too few parameters in x0 for the QFactor instantiator, expected {}, got {}",
+                circuit.num_params(),
+                x0.len()
+            );
+        }
         circuit.set_params(x0);
 
         let mut unitary_builder = self.initialize_circuit_tensor(&circuit, &target);

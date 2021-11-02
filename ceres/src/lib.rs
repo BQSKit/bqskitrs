@@ -86,10 +86,11 @@ pub struct CeresSolver {
     num_threads: usize,
     ftol: f64,
     gtol: f64,
+    report: bool,
 }
 
 impl CeresSolver {
-    pub fn new(num_threads: usize, ftol: f64, gtol: f64) -> Self {
+    pub fn new(num_threads: usize, ftol: f64, gtol: f64, report: bool) -> Self {
         CERES_INIT.call_once(|| {
             // Safety: only called once to do onceguard
             unsafe { ceres_init() };
@@ -100,6 +101,7 @@ impl CeresSolver {
             num_threads,
             ftol,
             gtol,
+            report,
         }
     }
 
@@ -140,6 +142,7 @@ impl CeresSolver {
                 self.num_threads,
                 self.ftol,
                 self.gtol,
+                self.report,
             );
         }
     }

@@ -7,7 +7,7 @@ mod permutation_matrix;
 #[cfg(feature = "python")]
 mod python;
 mod unitary_builder;
-mod utils;
+pub mod utils;
 
 #[cfg(feature = "mimalloc")]
 use mimalloc::MiMalloc;

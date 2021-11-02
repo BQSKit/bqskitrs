@@ -5,17 +5,10 @@ use bqskitrs::circuit::Circuit;
 use bqskitrs::gates::*;
 use bqskitrs::instantiators::*;
 use bqskitrs::operation::Operation;
-use bqskitrs::{i, r};
+use bqskitrs::utils::qft;
 
 use ndarray::Array2;
 use num_complex::Complex64;
-
-use std::f64::consts::{E, PI};
-
-pub fn qft(n: usize) -> Array2<Complex64> {
-    let root = r!(E).powc(i!(2f64) * PI / n as f64);
-    Array2::from_shape_fn((n, n), |(x, y)| root.powf((x * y) as f64)) / (n as f64).sqrt()
-}
 
 extern "C" {
     fn srand(seed: u32);

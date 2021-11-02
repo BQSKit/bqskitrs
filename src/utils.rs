@@ -3,7 +3,9 @@ use ndarray_einsum_beta::einsum;
 use num_complex::Complex64;
 use squaremat::*;
 
-use crate::r;
+use crate::{i, r};
+
+use std::f64::consts::{E, PI};
 
 use itertools::Itertools;
 
@@ -90,4 +92,9 @@ pub fn matrix_residuals_jac(
         row.assign(&data);
     }
     out.reversed_axes()
+}
+
+pub fn qft(n: usize) -> Array2<Complex64> {
+    let root = r!(E).powc(i!(2f64) * PI / n as f64);
+    Array2::from_shape_fn((n, n), |(x, y)| root.powf((x * y) as f64)) / (n as f64).sqrt()
 }

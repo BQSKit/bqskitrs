@@ -15,5 +15,5 @@ use enum_dispatch::enum_dispatch;
 #[enum_dispatch]
 pub trait Minimizer {
     type CostFunctionTy: CostFn;
-    fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64>;
+    fn minimize(&self, cost_fn: &Self::CostFunctionTy, x0: &[f64]) -> Vec<f64>;
 }

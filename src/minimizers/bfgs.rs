@@ -15,9 +15,9 @@ impl BfgsJacSolver {
 
 impl Minimizer for BfgsJacSolver {
     type CostFunctionTy = CostFunction;
-    fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64> {
+    fn minimize(&self, cost_fn: &Self::CostFunctionTy, x0: &[f64]) -> Vec<f64> {
         if x0.is_empty() {
-            return x0;
+            return x0.to_vec();
         }
         let i = x0.len();
         let f = |x: &[f64], gradient: Option<&mut [f64]>, _user_data: &mut ()| -> f64 {
@@ -31,7 +31,7 @@ impl Minimizer for BfgsJacSolver {
             }
             dsq
         };
-        let mut x = x0;
+        let mut x = x0.to_vec();
         let mut fmin = Nlopt::new(Algorithm::Lbfgs, i, &f, Target::Minimize, ());
         fmin.set_stopval(1e-16).unwrap();
         fmin.set_maxeval(15000).unwrap();

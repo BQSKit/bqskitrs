@@ -60,7 +60,7 @@ impl PyCeresJacSolver {
             Ok(fun) => Ok(fun),
             Err(err) => Err(PyTypeError::new_err(err.to_string())),
         }?;
-        let x = solv.minimize(cost_fun, x0_rust);
+        let x = solv.minimize(&cost_fun, &x0_rust);
         Ok(x.into_pyarray(py).to_owned())
     }
 

@@ -16,9 +16,9 @@ impl CeresJacSolver {
 
 impl Minimizer for CeresJacSolver {
     type CostFunctionTy = ResidualFunction;
-    fn minimize(&self, cost_fn: Self::CostFunctionTy, x0: Vec<f64>) -> Vec<f64> {
+    fn minimize(&self, cost_fn: &Self::CostFunctionTy, x0: &[f64]) -> Vec<f64> {
         if x0.is_empty() {
-            return x0;
+            return x0.to_vec();
         }
         let i = x0.len();
         let mut cost_fun = |params: &[f64], resids: &mut [f64], jac: Option<&mut [f64]>| {
@@ -30,7 +30,7 @@ impl Minimizer for CeresJacSolver {
                 jacobian.copy_from_slice(&v)
             }
         };
-        let mut x = x0;
+        let mut x = x0.to_vec();
         self.solver
             .solve(&mut cost_fun, &mut x, cost_fn.num_residuals(), 100 * i);
         x

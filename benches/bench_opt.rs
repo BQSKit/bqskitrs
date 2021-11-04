@@ -2,12 +2,12 @@ use criterion::Criterion;
 use criterion::{criterion_group, criterion_main};
 
 use bqskitrs::circuit::Circuit;
-use bqskitrs::{gates::*};
-use bqskitrs::minimizers::*;
+use bqskitrs::gates::*;
 use bqskitrs::instantiators::*;
+use bqskitrs::minimizers::*;
 use bqskitrs::operation::Operation;
 
-use ndarray::{Array2};
+use ndarray::Array2;
 use num_complex::Complex64;
 
 use ndarray_npy::ReadNpyExt;
@@ -106,10 +106,14 @@ fn create_benches() -> Vec<(&'static str, Vec<usize>, Vec<u8>, usize)> {
 
     // Positions of CNOTs in each circuit
     let qft3 = vec![1, 0, 1, 0, 1, 0, 1];
-    let qft5 = vec![0, 3, 0, 2, 2, 1, 2, 0, 1, 2, 3, 0, 0, 1, 2, 3, 1, 2, 3, 0, 1, 1, 2, 1, 2, 0, 2, 3, 0, 0, 1];
+    let qft5 = vec![
+        0, 3, 0, 2, 2, 1, 2, 0, 1, 2, 3, 0, 0, 1, 2, 3, 1, 2, 3, 0, 1, 1, 2, 1, 2, 0, 2, 3, 0, 0, 1,
+    ];
     let mul = vec![2, 1, 0, 1, 2, 3, 1, 2, 1, 2, 0, 0, 1, 1];
     let fredkin = vec![0, 1, 1, 0, 1, 1, 0, 1];
-    let qaoa = vec![0, 2, 3, 1, 3, 0, 3, 2, 2, 2, 3, 2, 1, 0, 1, 1, 2, 1, 2, 3, 0, 3, 0, 1, 2, 1, 0];
+    let qaoa = vec![
+        0, 2, 3, 1, 3, 0, 3, 2, 2, 2, 3, 2, 1, 0, 1, 1, 2, 1, 2, 3, 0, 3, 0, 1, 2, 1, 0,
+    ];
     let hhl = vec![1, 0, 1, 0];
     let peres = vec![1, 0, 1, 0, 0, 1, 0];
     let grover3 = vec![1, 0, 1, 0, 0, 1, 0];
@@ -120,7 +124,9 @@ fn create_benches() -> Vec<(&'static str, Vec<usize>, Vec<u8>, usize)> {
     let qft4 = vec![0, 2, 1, 2, 0, 2, 1, 2, 0, 1, 0, 1, 2, 1, 2, 0];
     let or = vec![1, 0, 1, 0, 0, 1, 0, 0];
     let tfim_4_95 = vec![1, 2, 0, 2, 1, 1, 2, 0, 0, 1, 2, 2];
-    let vqe = vec![0, 2, 0, 0, 1, 0, 0, 1, 1, 1, 2, 0, 0, 1, 2, 0, 2, 1, 2, 0, 2, 1, 1, 0];
+    let vqe = vec![
+        0, 2, 0, 0, 1, 0, 0, 1, 1, 1, 2, 0, 0, 1, 2, 0, 2, 1, 2, 0, 2, 1, 1, 0,
+    ];
     let hlf = vec![1, 3, 0, 3, 0, 1, 1, 2, 2, 3, 1, 2, 0, 2, 1];
 
     let qft3_bytes = include_bytes!("qft3.npy");
@@ -140,7 +146,7 @@ fn create_benches() -> Vec<(&'static str, Vec<usize>, Vec<u8>, usize)> {
     let tfim_4_95_bytes = include_bytes!("tfim-4-95.npy");
     let vqe_bytes = include_bytes!("vqe.npy");
     let hlf_bytes = include_bytes!("hlf.npy");
-    
+
     let benchs = vec![
         ("qft3", qft3, qft3_bytes.to_vec(), 3),
         ("fredkin", fredkin, fredkin_bytes.to_vec(), 3),
@@ -191,11 +197,15 @@ fn bench_ceres(c: &mut Criterion) {
         let target = Array2::read_npy(&npy[..]).unwrap();
         let cost = HilbertSchmidtResidualFn::new(circ, target);
         group.sample_size(10).bench_function(name.clone(), |b| {
-            b.iter(|| optimize_ceres(&minimizer, &ResidualFunction::HilbertSchmidt(cost.clone()), &x0))
+            b.iter(|| {
+                optimize_ceres(
+                    &minimizer,
+                    &ResidualFunction::HilbertSchmidt(cost.clone()),
+                    &x0,
+                )
+            })
         });
     }
-
-    
 }
 
 criterion_group!(ceres, bench_ceres);

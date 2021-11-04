@@ -47,7 +47,13 @@ fn main() {
                 .define("CXSPARSE", "OFF")
                 .build();
             println!("cargo:rustc-link-search=native={}/lib", ceres.display());
-            println!("cargo:rustc-link-lib=static=ceres");
+            let profile = std::env::var("PROFILE").unwrap();
+            let lib_name = match profile.as_str() {
+                "debug" => "ceres-debug",
+                "release" => "ceres",
+                _ => "ceres",
+            };
+            println!("cargo:rustc-link-lib=static={}", lib_name);
             let sysinclude3 = std::path::PathBuf::from("/usr/include/eigen3");
             let sysinclude = std::path::PathBuf::from("/usr/include/eigen3");
             let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");

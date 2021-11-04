@@ -4,7 +4,6 @@ use std::sync::Once;
 
 use ceres_sys::ceres::{
     ceres_create_problem, ceres_free_problem, ceres_init, ceres_problem_add_residual_block,
-    ceres_problem_t,
 };
 use ceres_sys::ceres_solve_silent;
 
@@ -82,7 +81,6 @@ extern "C" fn trampoline(
 }
 
 pub struct CeresSolver {
-    problem: *mut ceres_problem_t,
     num_threads: usize,
     ftol: f64,
     gtol: f64,
@@ -96,8 +94,6 @@ impl CeresSolver {
             unsafe { ceres_init() };
         });
         Self {
-            // Safety: ceres_init() already called, FFI wrapper
-            problem: unsafe { ceres_create_problem() },
             num_threads,
             ftol,
             gtol,
@@ -114,6 +110,8 @@ impl CeresSolver {
     ) where
         R: FnMut(&[f64], &mut [f64], Option<&mut [f64]>),
     {
+        // Safety: ceres_init() already called, FFI wrapper
+        let problem = unsafe { ceres_create_problem() };
         let data = &mut ClosureData {
             cost_fn: residual_function,
             nparams: x0.len(),
@@ -123,7 +121,7 @@ impl CeresSolver {
         // Safety: problem already initialized in new(), data lives as long as function lifetime, as does x_ptr
         unsafe {
             ceres_problem_add_residual_block(
-                self.problem,
+                problem,
                 Some(trampoline),
                 data,
                 None,
@@ -137,7 +135,7 @@ impl CeresSolver {
         unsafe {
             // Safety: problem initialized in new
             ceres_solve_silent(
-                self.problem,
+                problem,
                 max_iters,
                 self.num_threads,
                 self.ftol,
@@ -145,14 +143,9 @@ impl CeresSolver {
                 self.report,
             );
         }
-    }
-}
-
-impl Drop for CeresSolver {
-    fn drop(&mut self) {
         unsafe {
-            // Safety: problem initialized in new + FFI wrapper, originates from ceres_create_problem
-            ceres_free_problem(self.problem);
+            // Safety: problem initialized in earlier in this function, originates from ceres_create_problem
+            ceres_free_problem(problem);
         }
     }
 }

@@ -22,23 +22,7 @@ extern "C" fn trampoline(
     residuals: *mut c_double,
     jacobian: *mut *mut c_double,
 ) -> c_int {
-    let abort_on_drop_guard = {
-        struct AbortOnDrop;
-        impl Drop for AbortOnDrop {
-            fn drop(&mut self) {
-                eprintln!(
-                    "\
-                Error, Rust was about to unwind across an `extern \"C\"` \
-                function, which is Undefined Behavior.\n\
-                Aborting the process for soundness.\
-            "
-                );
-                ::std::process::abort();
-            }
-        }
-        AbortOnDrop
-    };
-    unsafe {
+    let panic_guard = std::panic::catch_unwind(|| unsafe {
         let data: *mut ClosureData = data.cast();
         let closure_data: &mut ClosureData = data.as_mut().expect("Got NULL `data`");
         let slice = |ptr: *const c_double, len: usize| {
@@ -74,10 +58,13 @@ extern "C" fn trampoline(
             }
         };
         (*closure_data.cost_fn)(&closure_params, &mut closure_residuals, closure_jac);
+    });
+    match panic_guard {
+        // If we don't panic we can return normally
+        Ok(_) => 1,
+        // Otherwise abort to not cause UB
+        Err(_) => std::process::abort(),
     }
-    // If we reach this point, no panic has happened, so we can defuse the abort bomb
-    mem::forget(abort_on_drop_guard);
-    1
 }
 
 pub struct CeresSolver {

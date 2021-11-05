@@ -129,23 +129,23 @@ fn create_benches() -> Vec<(&'static str, Vec<usize>, Vec<u8>, usize)> {
     ];
     let hlf = vec![1, 3, 0, 3, 0, 1, 1, 2, 2, 3, 1, 2, 0, 2, 1];
 
-    let qft3_bytes = include_bytes!("qft3.npy");
-    let qft5_bytes = include_bytes!("qft5.npy");
-    let mul_bytes = include_bytes!("mul.npy");
-    let fredkin_bytes = include_bytes!("fredkin.npy");
-    let qaoa_bytes = include_bytes!("qaoa.npy");
-    let hhl_bytes = include_bytes!("hhl.npy");
-    let peres_bytes = include_bytes!("peres.npy");
-    let grover3_bytes = include_bytes!("grover3.npy");
-    let tfim_5_100_bytes = include_bytes!("tfim-5-100.npy");
-    let toffoli_bytes = include_bytes!("toffoli.npy");
-    let tfim_6_1_bytes = include_bytes!("tfim-6-1.npy");
-    let adder_bytes = include_bytes!("adder.npy");
-    let qft4_bytes = include_bytes!("qft4.npy");
-    let or_bytes = include_bytes!("or.npy");
-    let tfim_4_95_bytes = include_bytes!("tfim-4-95.npy");
-    let vqe_bytes = include_bytes!("vqe.npy");
-    let hlf_bytes = include_bytes!("hlf.npy");
+    let qft3_bytes = include_bytes!("unitaries/qft3.npy");
+    let qft5_bytes = include_bytes!("unitaries/qft5.npy");
+    let mul_bytes = include_bytes!("unitaries/mul.npy");
+    let fredkin_bytes = include_bytes!("unitaries/fredkin.npy");
+    let qaoa_bytes = include_bytes!("unitaries/qaoa.npy");
+    let hhl_bytes = include_bytes!("unitaries/hhl.npy");
+    let peres_bytes = include_bytes!("unitaries/peres.npy");
+    let grover3_bytes = include_bytes!("unitaries/grover3.npy");
+    let tfim_5_100_bytes = include_bytes!("unitaries/tfim-5-100.npy");
+    let toffoli_bytes = include_bytes!("unitaries/toffoli.npy");
+    let tfim_6_1_bytes = include_bytes!("unitaries/tfim-6-1.npy");
+    let adder_bytes = include_bytes!("unitaries/adder.npy");
+    let qft4_bytes = include_bytes!("unitaries/qft4.npy");
+    let or_bytes = include_bytes!("unitaries/or.npy");
+    let tfim_4_95_bytes = include_bytes!("unitaries/tfim-4-95.npy");
+    let vqe_bytes = include_bytes!("unitaries/vqe.npy");
+    let hlf_bytes = include_bytes!("unitaries/hlf.npy");
 
     let benchs = vec![
         ("qft3", qft3, qft3_bytes.to_vec(), 3),

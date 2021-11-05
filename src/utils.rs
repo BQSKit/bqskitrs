@@ -1,4 +1,4 @@
-use ndarray::{s, Array1, Array2, Array3, Array4, ArrayView2, ArrayView3, Ix2};
+use ndarray::{s, Array1, Array2, Array3, ArrayView4, ArrayView2, ArrayView3, Ix2};
 use ndarray_einsum_beta::einsum;
 use num_complex::Complex64;
 use squaremat::*;
@@ -9,7 +9,7 @@ use std::f64::consts::{E, PI};
 
 use itertools::Itertools;
 
-pub fn trace(arr: Array4<Complex64>) -> Array2<Complex64> {
+pub fn trace(arr: ArrayView4<Complex64>) -> Array2<Complex64> {
     let mut out = Array2::<Complex64>::zeros((arr.shape()[2], arr.shape()[3]));
     for i in 0..arr.shape()[2] {
         for j in 0..arr.shape()[3] {

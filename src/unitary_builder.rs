@@ -9,7 +9,7 @@ use crate::utils::{argsort, trace};
 pub struct UnitaryBuilder {
     size: usize,
     radixes: Vec<usize>,
-    tensor: ArrayD<Complex64>,
+    tensor: Option<ArrayD<Complex64>>,
     dim: usize,
 }
 
@@ -23,18 +23,21 @@ impl UnitaryBuilder {
         UnitaryBuilder {
             size,
             radixes,
-            tensor,
+            tensor: Some(tensor),
             dim,
         }
     }
 
     pub fn get_utry(&self) -> Array2<Complex64> {
-        self.tensor
-            .to_shape((self.dim, self.dim))
-            .unwrap()
-            .into_dimensionality::<Ix2>()
-            .unwrap()
-            .to_owned()
+        match &self.tensor {
+            Some(t) => t
+                .to_shape((self.dim, self.dim))
+                .unwrap()
+                .into_dimensionality::<Ix2>()
+                .unwrap()
+                .to_owned(),
+            None => panic!("Tensor was unexpectedly None."),
+        }
     }
 
     pub fn apply_right(&mut self, utry: ArrayView2<Complex64>, location: &[usize], inverse: bool) {
@@ -54,7 +57,7 @@ impl UnitaryBuilder {
         perm.extend(mid_perm);
         perm.extend(right_perm);
 
-        let permuted = self.tensor.clone().permuted_axes(perm.clone());
+        let permuted = self.tensor.take().unwrap().permuted_axes(perm.clone());
         let dim: usize = permuted.shape().iter().product();
         let reshaped = permuted
             .to_shape((left_dim, dim / left_dim))
@@ -64,12 +67,9 @@ impl UnitaryBuilder {
         let radixes = [&self.radixes[..], &self.radixes[..]].concat();
         let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
         let reshape_back = prod
-            .to_shape(shape)
+            .into_shape(shape)
             .expect("Failed to reshape matrix product back");
-        self.tensor = reshape_back
-            .permuted_axes(argsort(perm))
-            .to_owned()
-            .into_dyn();
+        self.tensor = Some(reshape_back.permuted_axes(argsort(perm)).into_dyn());
     }
 
     pub fn apply_left(&mut self, utry: ArrayView2<Complex64>, location: &[usize], inverse: bool) {
@@ -98,7 +98,7 @@ impl UnitaryBuilder {
         perm.extend(mid_perm);
         perm.extend(right_perm);
 
-        let permuted = self.tensor.clone().permuted_axes(perm.clone());
+        let permuted = self.tensor.take().unwrap().permuted_axes(perm.clone());
         let dim: usize = permuted.shape().iter().product();
         let reshaped = permuted
             .to_shape((dim / right_dim, right_dim))
@@ -107,12 +107,9 @@ impl UnitaryBuilder {
         let radixes = [&self.radixes[..], &self.radixes[..]].concat();
         let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
         let reshape_back = prod
-            .to_shape(shape)
+            .into_shape(shape)
             .expect("Failed to reshape matrix product back");
-        self.tensor = reshape_back
-            .permuted_axes(argsort(perm))
-            .to_owned()
-            .into_dyn();
+        self.tensor = Some(reshape_back.permuted_axes(argsort(perm)).into_dyn());
     }
 
     pub fn calc_env_matrix(&self, location: &[usize]) -> Array2<Complex64> {
@@ -126,7 +123,10 @@ impl UnitaryBuilder {
         let mut perm = vec![];
         perm.append(&mut left_perm);
         perm.append(&mut right_perm);
-        let a = self.tensor.clone().permuted_axes(perm);
+        let a = match &self.tensor {
+            Some(t) => t.clone().permuted_axes(perm),
+            None => panic!("Tensor was unexpectedly None."),
+        };
         let reshaped = a
             .to_shape([
                 2usize.pow(self.size as u32 - location.len() as u32),
@@ -134,8 +134,7 @@ impl UnitaryBuilder {
                 2usize.pow(location.len() as u32),
                 2usize.pow(location.len() as u32),
             ])
-            .expect("Failed to reshape in calc_env_matrix.")
-            .to_owned();
-        trace(reshaped)
+            .expect("Failed to reshape in calc_env_matrix.");
+        trace(reshaped.view())
     }
 }

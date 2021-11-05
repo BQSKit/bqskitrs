@@ -1,4 +1,4 @@
-use ndarray::{Array2, ArrayView2, CowArray, Ix2, ShapeBuilder};
+use ndarray::{Array2, ArrayView2, ArrayViewMut2, CowArray, Ix2, ShapeBuilder};
 use num_complex::Complex64;
 
 use cblas_sys::cblas_zgemm;
@@ -97,6 +97,12 @@ impl Matmul for Array2<Complex64> {
 }
 
 impl Matmul for ArrayView2<'_, Complex64> {
+    fn matmul(&self, other: ArrayView2<Complex64>) -> Array2<Complex64> {
+        matmul_impl(self.view(), other)
+    }
+}
+
+impl Matmul for ArrayViewMut2<'_, Complex64> {
     fn matmul(&self, other: ArrayView2<Complex64>) -> Array2<Complex64> {
         matmul_impl(self.view(), other)
     }

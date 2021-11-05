@@ -1,4 +1,3 @@
-use std::mem;
 use std::os::raw::{c_double, c_int, c_void};
 use std::sync::Once;
 

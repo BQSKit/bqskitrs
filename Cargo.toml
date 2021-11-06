@@ -81,7 +81,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dev-dependencies]
 criterion = "0.3"
-ndarray-npy = { git = "https://github.com/jturner314/ndarray-npy.git", branch = "complex-elems", default-features = false, features = ["num-complex-0_4"] }
+ndarray-npy = { version = "0.8.1", default-features = false, features = ["num-complex-0_4"] }
 num-complex = { version = "0.4.0", features = ["serde"] }
 
 [[bench]]

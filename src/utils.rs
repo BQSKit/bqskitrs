@@ -1,4 +1,4 @@
-use ndarray::{s, Array1, Array2, Array3, ArrayView4, ArrayView2, ArrayView3, Ix2};
+use ndarray::{s, Array1, Array2, Array3, ArrayView2, ArrayView3, ArrayView4, Ix2};
 use ndarray_einsum_beta::einsum;
 use num_complex::Complex64;
 use squaremat::*;

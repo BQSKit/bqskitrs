@@ -1,7 +1,7 @@
 use ndarray::Array2;
 use num_complex::Complex64;
 
-use squaremat::*;
+use ndarray_linalg::trace::Trace;
 
 use super::Instantiate;
 use crate::gates::Optimize;
@@ -119,7 +119,7 @@ impl Instantiate for QFactorInstantiator {
             self.sweep_circuit(&mut unitary_builder, &mut circuit);
 
             dist2 = dist1;
-            dist1 = unitary_builder.get_utry().trace().norm();
+            dist1 = unitary_builder.get_utry().trace().unwrap().norm();
             dist1 = 1. - (dist1 / 2f64.powi(circuit.size as i32));
 
             if dist1 < self.dist_tol {

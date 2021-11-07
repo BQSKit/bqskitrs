@@ -25,6 +25,7 @@ static = [
     "openblas-src/static",
     "openblas-src/cblas",
     "openblas-src/lapacke",
+    "ndarray-linalg/openblas-static",
     "squaremat/openblas-static",
     "ceres/static",
 ]
@@ -36,14 +37,16 @@ default = [
     "openblas-src/system",
     "openblas-src/cblas",
     "openblas-src/lapacke",
+    "ndarray-linalg/openblas-system",
     "squaremat/openblas-system",
 ]
 accelerate = ["accelerate-src", "blas-src/accelerate", "squaremat/accelerate"]
-mkl = ["intel-mkl-src", "blas-src/intel-mkl", "squaremat/mkl"]
+mkl = ["intel-mkl-src", "blas-src/intel-mkl", "squaremat/mkl", "ndarray-linalg/intel-mkl-system"]
 
 [dependencies]
 num-complex = { version = "0.4.0", features = ["serde"] }
 ndarray = { version = "0.15.3", features = ["blas"] }
+ndarray-linalg = "0.14.1"
 blas-src = { version = "0.8.0", default-features = false }
 openblas-src = { version = "0.10.4", default-features = false, optional = true }
 accelerate-src = { version = "0.3.2", optional = true }

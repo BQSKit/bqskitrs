@@ -10,17 +10,17 @@ ENV CMAKE cmake3
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y \
     && rustup set profile minimal \
-    && rustup toolchain add nightly-2021-06-09 \
+    && rustup toolchain add nightly-2021-11-02 \
     && python3 -m pip install --no-cache-dir cffi \
     && mkdir /io
 
 RUN git clone https://github.com/PyO3/maturin /maturin/
 
-RUN cargo +nightly-2021-06-09 rustc --bin maturin --manifest-path /maturin/Cargo.toml -- -C link-arg=-s \
+RUN cargo +nightly-2021-11-02 rustc --bin maturin --manifest-path /maturin/Cargo.toml -- -C link-arg=-s \
     && mv /maturin/target/debug/maturin /usr/bin/maturin \
     && rm -rf /maturin
 
-RUN rustup default nightly-2021-06-09
+RUN rustup default nightly-2021-11-02
 
 RUN yum install -y git cmake3 eigen3-devel llvm-toolset-7 && \
     yum clean all && \

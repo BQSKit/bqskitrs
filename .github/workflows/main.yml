@@ -65,7 +65,7 @@ jobs:
           run: rm -rf target
           if: startsWith(matrix.os, 'ubuntu')
         - name: Build manylinux wheels
-          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.2 build --cargo-extra-args="--no-default-features --features python,static,mimalloc/local_dynamic_tls" --release --manylinux 2014 --no-sdist --skip-auditwheel
+          run: docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io ethanhs/maturin-manylinux-2014:0.3 build --cargo-extra-args="--no-default-features --features python,static,mimalloc/local_dynamic_tls" --release --manylinux 2014 --no-sdist --skip-auditwheel
           env:
             RUST_BACKTRACE: 1
           if: startsWith(matrix.os, 'ubuntu')

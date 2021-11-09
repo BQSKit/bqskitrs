@@ -1,3 +1,5 @@
+use std::mem::MaybeUninit;
+
 use ndarray::{Array2, ArrayView2, Zip};
 use num_complex::Complex64;
 
@@ -7,7 +9,7 @@ fn multiply(first: &ArrayView2<Complex64>, other: &ArrayView2<Complex64>) -> Arr
         .and(first)
         .and(other)
         .for_each(|out, &first, &other| {
-            out.write(first * other);
+            *out = MaybeUninit::new(first * other);
         });
     unsafe { out.assume_init() }
 }

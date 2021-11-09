@@ -49,7 +49,7 @@ pub fn matrix_distance_squared_jac(
     j: ArrayView3<Complex64>,
 ) -> (f64, Vec<f64>) {
     let size = u.shape()[0];
-    let s = u.multiply(m.conj().view()).sum();
+    let s = u.multiply(&m.conj().view()).sum();
     let dsq = 1f64 - s.norm() / size as f64;
     if s == r!(0.0) {
         return (dsq, vec![std::f64::INFINITY; j.len()]);

@@ -32,12 +32,12 @@ impl PyCeresJacSolver {
         let ftol = if let Some(ftol) = ftol {
             ftol
         } else {
-            1e-6 // Ceres documented default
+            5e-16 // This comes from the value in qsearch
         };
         let gtol = if let Some(gtol) = gtol {
             gtol
         } else {
-            1e-10 // Ceres documented default
+            1e-15 // This comes from the value in qsearch
         };
         let report = if let Some(report) = report {
             report

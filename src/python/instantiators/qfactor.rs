@@ -41,7 +41,7 @@ impl PyQFactorInstantiator {
     pub fn instantiate(
         &self,
         py: Python,
-        circuit: Circuit,
+        mut circuit: Circuit,
         target: PyObject,
         x0: Vec<f64>,
     ) -> PyResult<Vec<f64>> {
@@ -53,6 +53,6 @@ impl PyQFactorInstantiator {
             }
         };
         let target_rs = target_rs.as_ref(py).to_owned_array();
-        Ok(self.instantiator.instantiate(circuit, target_rs, &x0))
+        Ok(self.instantiator.instantiate(&mut circuit, target_rs, &x0))
     }
 }

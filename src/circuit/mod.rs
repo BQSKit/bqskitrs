@@ -1,6 +1,5 @@
 use crate::{
     gates::{Gradient, Unitary},
-    operation::Operation,
     permutation_matrix::calc_permutation_matrix,
     unitary_builder::UnitaryBuilder,
 };
@@ -10,6 +9,11 @@ use itertools::izip;
 use ndarray::{Array2, Array3};
 use num_complex::Complex64;
 use squaremat::*;
+
+pub mod operation;
+pub mod chunk;
+
+use operation::Operation;
 
 /// A list of gates in a quantum circuit
 #[derive(Clone)]

@@ -4,7 +4,7 @@ use crate::circuit::Circuit;
 use crate::gates::Gradient;
 use crate::gates::Unitary;
 use crate::gates::*;
-use crate::operation::Operation;
+use crate::circuit::operation::Operation;
 
 use ndarray::Array2;
 use num_complex::Complex64;

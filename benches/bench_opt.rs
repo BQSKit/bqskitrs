@@ -5,7 +5,7 @@ use bqskitrs::circuit::Circuit;
 use bqskitrs::gates::*;
 use bqskitrs::instantiators::*;
 use bqskitrs::minimizers::*;
-use bqskitrs::operation::Operation;
+use bqskitrs::circuit::operation::Operation;
 
 use ndarray::Array2;
 use num_complex::Complex64;
@@ -93,7 +93,7 @@ fn optimize_ceres(minimizer: &CeresJacSolver, cost: &ResidualFunction, x0: &[f64
 
 fn optimize_qfactor(
     instantiator: &QFactorInstantiator,
-    circ: Circuit,
+    circ: &mut Circuit,
     target: Array2<Complex64>,
     x0: &[f64],
 ) {
@@ -181,7 +181,7 @@ fn bench_qfactor(c: &mut Criterion) {
         let x0 = vec![0.0; circ.num_params()];
         let target = Array2::read_npy(&npy[..]).unwrap();
         group.sample_size(10).bench_function(name, |b| {
-            b.iter(|| optimize_qfactor(&instantiator, circ.clone(), target.clone(), &x0))
+            b.iter(|| optimize_qfactor(&instantiator, &mut circ.clone(), target.clone(), &x0))
         });
     }
 }

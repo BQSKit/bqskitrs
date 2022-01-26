@@ -10,7 +10,6 @@ use ndarray::{Array2, Array3};
 use num_complex::Complex64;
 use squaremat::*;
 
-pub mod chunk;
 pub mod operation;
 
 use operation::Operation;

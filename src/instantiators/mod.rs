@@ -9,7 +9,8 @@ pub use qfactor::QFactorInstantiator;
 
 #[enum_dispatch]
 pub trait Instantiate {
-    fn instantiate(&self, circuit: &mut Circuit, target: Array2<Complex64>, x0: &[f64]) -> Vec<f64>;
+    fn instantiate(&self, circuit: &mut Circuit, target: Array2<Complex64>, x0: &[f64])
+        -> Vec<f64>;
 }
 
 #[enum_dispatch(Instantiate)]

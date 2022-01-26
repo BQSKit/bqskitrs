@@ -25,7 +25,7 @@ impl Default for QFactorInstantiator {
             diff_tol_r: 1e-6,
             dist_tol: 1e-16,
             max_iters: 100000,
-            min_iters:1000,
+            min_iters: 1000,
             //slowdown_factor: 0.0,
             reinit_delay: 40,
         }
@@ -100,7 +100,12 @@ impl QFactorInstantiator {
 }
 
 impl Instantiate for QFactorInstantiator {
-    fn instantiate(&self, circuit: &mut Circuit, target: Array2<Complex64>, x0: &[f64]) -> Vec<f64> {
+    fn instantiate(
+        &self,
+        circuit: &mut Circuit,
+        target: Array2<Complex64>,
+        x0: &[f64],
+    ) -> Vec<f64> {
         if x0.len() != circuit.num_params() {
             panic!(
                 "Too few parameters in x0 for the QFactor instantiator, expected {}, got {}",

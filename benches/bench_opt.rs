@@ -1,11 +1,11 @@
 use criterion::Criterion;
 use criterion::{criterion_group, criterion_main};
 
+use bqskitrs::circuit::operation::Operation;
 use bqskitrs::circuit::Circuit;
 use bqskitrs::gates::*;
 use bqskitrs::instantiators::*;
 use bqskitrs::minimizers::*;
-use bqskitrs::circuit::operation::Operation;
 
 use ndarray::Array2;
 use num_complex::Complex64;

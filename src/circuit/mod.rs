@@ -21,6 +21,7 @@ pub struct Circuit {
     pub radixes: Vec<usize>,
     pub ops: Vec<Operation>,
     pub constant_gates: Vec<Array2<Complex64>>,
+    pub num_params: usize,
 }
 
 impl Circuit {
@@ -30,11 +31,13 @@ impl Circuit {
         ops: Vec<Operation>,
         constant_gates: Vec<Array2<Complex64>>,
     ) -> Self {
+        let num_params = ops.iter().map(|i| i.gate.num_params()).sum();
         Circuit {
             size,
             radixes,
             ops,
             constant_gates,
+            num_params,
         }
     }
 
@@ -47,6 +50,13 @@ impl Circuit {
     }
 
     pub fn set_params(&mut self, params: &[f64]) {
+        if params.len() != self.num_params() {
+            panic!(
+                "Incorrect number of parameters in set_params, expected {} got {}",
+                self.num_params(),
+                params.len()
+            );
+        }
         let mut param_idx = 0;
         for op in self.ops.iter_mut() {
             let parameters = &params[param_idx..param_idx + op.num_params()];
@@ -58,12 +68,18 @@ impl Circuit {
 
 impl Unitary for Circuit {
     fn num_params(&self) -> usize {
-        self.ops.iter().map(|i| i.gate.num_params()).sum()
+        self.num_params
     }
 
     fn get_utry(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
         if !params.is_empty() {
-            assert_eq!(params.len(), self.num_params());
+            if params.len() != self.num_params() {
+                panic!(
+                    "Incorrect number of params passed to circuit, expected {}, got {}",
+                    self.num_params(),
+                    params.len()
+                );
+            }
             let mut param_idx = 0;
             let mut builder = UnitaryBuilder::new(self.size, self.radixes.clone());
             for op in &self.ops {
@@ -86,6 +102,13 @@ impl Unitary for Circuit {
 
 impl Gradient for Circuit {
     fn get_grad(&self, params: &[f64], const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
+        if params.len() != self.num_params() {
+            panic!(
+                "Incorrect number of params passed to circuit, expected {}, got {}",
+                self.num_params(),
+                params.len()
+            );
+        }
         self.get_utry_and_grad(params, const_gates).1
     }
 
@@ -94,6 +117,13 @@ impl Gradient for Circuit {
         params: &[f64],
         const_gates: &[Array2<Complex64>],
     ) -> (Array2<Complex64>, Array3<Complex64>) {
+        if params.len() != self.num_params() {
+            panic!(
+                "Incorrect number of params passed to circuit, expected {}, got {}",
+                self.num_params(),
+                params.len()
+            );
+        }
         let mut matrices = vec![];
         let mut grads = vec![];
         let mut locations = vec![];

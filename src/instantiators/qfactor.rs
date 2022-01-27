@@ -108,7 +108,7 @@ impl Instantiate for QFactorInstantiator {
     ) -> Vec<f64> {
         if x0.len() != circuit.num_params() {
             panic!(
-                "Too few parameters in x0 for the QFactor instantiator, expected {}, got {}",
+                "Incorrect number of parameters in x0 for the QFactor instantiator, expected {}, got {}",
                 circuit.num_params(),
                 x0.len()
             );

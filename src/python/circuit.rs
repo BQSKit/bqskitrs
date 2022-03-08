@@ -22,6 +22,9 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
     let dunder_name = cls.getattr("__name__")?;
     let name = dunder_name.extract::<&str>()?;
     match name {
+        "CRXGate" => Ok(CRXGate::new().into()),
+        "CRYGate" => Ok(CRYGate::new().into()),
+        "CRZGate" => Ok(CRZGate::new().into()),
         "RXGate" => Ok(RXGate::new().into()),
         "RYGate" => Ok(RYGate::new().into()),
         "RZGate" => Ok(RZGate::new().into()),

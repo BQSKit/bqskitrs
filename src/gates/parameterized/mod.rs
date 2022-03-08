@@ -1,3 +1,6 @@
+mod crx;
+mod cry;
+mod crz;
 mod rx;
 mod rxx;
 mod ry;
@@ -11,6 +14,9 @@ mod u8;
 mod variable;
 
 pub use self::u8::U8Gate;
+pub use crx::CRXGate;
+pub use cry::CRYGate;
+pub use crz::CRZGate;
 pub use rx::RXGate;
 pub use rxx::RXXGate;
 pub use ry::RYGate;

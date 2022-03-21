@@ -1,5 +1,5 @@
 use crate::{
-    gates::{Gradient, Unitary},
+    gates::{Gate, Gradient, Unitary},
     permutation_matrix::calc_permutation_matrix,
     unitary_builder::UnitaryBuilder,
 };
@@ -22,6 +22,7 @@ pub struct Circuit {
     pub ops: Vec<Operation>,
     pub constant_gates: Vec<Array2<Complex64>>,
     pub num_params: usize,
+    pub sendable: bool,
 }
 
 impl Circuit {
@@ -31,14 +32,27 @@ impl Circuit {
         ops: Vec<Operation>,
         constant_gates: Vec<Array2<Complex64>>,
     ) -> Self {
-        let num_params = ops.iter().map(|i| i.gate.num_params()).sum();
+        let mut sendable = true;
+        let mut num_params = 0;
+        for op in &ops {
+            num_params += op.gate.num_params();
+            match op.gate {
+                Gate::Dynamic(_) => sendable = false,
+                _ => (),
+            }
+        }
         Circuit {
             size,
             radixes,
             ops,
             constant_gates,
             num_params,
+            sendable,
         }
+    }
+
+    pub fn is_sendable(&self) -> bool {
+        self.sendable
     }
 
     pub fn get_params(&self) -> Vec<f64> {

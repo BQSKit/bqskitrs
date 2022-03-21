@@ -53,6 +53,11 @@ impl PyQFactorInstantiator {
             }
         };
         let target_rs = target_rs.as_ref(py).to_owned_array();
-        Ok(self.instantiator.instantiate(&mut circuit, target_rs, &x0))
+        if circuit.is_sendable() {
+            Ok(py
+                .allow_threads(move || self.instantiator.instantiate(&mut circuit, target_rs, &x0)))
+        } else {
+            Ok(self.instantiator.instantiate(&mut circuit, target_rs, &x0))
+        }
     }
 }

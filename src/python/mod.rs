@@ -44,7 +44,11 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
         num_qubits: usize,
         location: Vec<usize>,
     ) -> Py<PyArray2<Complex64>> {
-        PyArray2::from_array(py, &calc_permutation_matrix(num_qubits, location)).to_owned()
+        PyArray2::from_array(
+            py,
+            &py.allow_threads(move || calc_permutation_matrix(num_qubits, location)),
+        )
+        .to_owned()
     }
 
     #[pyfn(m)]
@@ -56,32 +60,39 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfn(m)]
     #[pyo3(name = "matrix_distance_squared")]
     fn matrix_distance_squared_py(
+        py: Python,
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
     ) -> f64 {
-        matrix_distance_squared(a.as_array(), b.as_array())
+        let a_array = a.as_array();
+        let b_array = b.as_array();
+        py.allow_threads(move || matrix_distance_squared(a_array, b_array))
     }
     #[pyfn(m)]
     #[pyo3(name = "matrix_distance_squared_jac")]
     fn matrix_distance_squared_jac_py(
+        py: Python,
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
         jacs: PyReadonlyArray3<Complex64>,
     ) -> (f64, Vec<f64>) {
-        matrix_distance_squared_jac(a.as_array(), b.as_array(), jacs.as_array())
+        let a_array = a.as_array();
+        let b_array = b.as_array();
+        let jacs_array = jacs.as_array();
+        py.allow_threads(move || matrix_distance_squared_jac(a_array, b_array, jacs_array))
     }
     #[pyfn(m)]
     #[pyo3(name = "matrix_residuals")]
     fn matrix_residuals_py(
+        py: Python,
         a: PyReadonlyArray2<Complex64>,
         b: PyReadonlyArray2<Complex64>,
         eye: PyReadonlyArray2<f64>,
     ) -> Vec<f64> {
-        matrix_residuals(
-            &a.to_owned_array(),
-            &b.to_owned_array(),
-            &eye.to_owned_array(),
-        )
+        let a_array = a.to_owned_array();
+        let b_array = b.to_owned_array();
+        let eye_array = eye.to_owned_array();
+        py.allow_threads(move || matrix_residuals(&a_array, &b_array, &eye_array))
     }
     #[pyfn(m)]
     #[pyo3(name = "matrix_residuals_jac")]
@@ -91,13 +102,12 @@ fn bqskitrs(_py: Python, m: &PyModule) -> PyResult<()> {
         m: PyReadonlyArray2<Complex64>,
         jacs: PyReadonlyArray3<Complex64>,
     ) -> Py<PyArray2<f64>> {
+        let u_array = u.to_owned_array();
+        let m_array = m.to_owned_array();
+        let jacs_array = jacs.to_owned_array();
         PyArray2::from_array(
             py,
-            &matrix_residuals_jac(
-                &u.to_owned_array(),
-                &m.to_owned_array(),
-                &jacs.to_owned_array(),
-            ),
+            &py.allow_threads(move || matrix_residuals_jac(&u_array, &m_array, &jacs_array)),
         )
         .to_owned()
     }

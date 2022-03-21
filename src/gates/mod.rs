@@ -7,7 +7,7 @@ mod size;
 mod unitary;
 mod utils;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub use self::constant::ConstantGate;
 pub use self::dynamic::DynGate;
@@ -39,7 +39,7 @@ pub enum Gate {
     CRY(CRYGate),
     CRZ(CRZGate),
     VariableUnitary(VariableUnitaryGate),
-    Dynamic(Rc<dyn DynGate>),
+    Dynamic(Arc<dyn DynGate + Send + Sync>),
 }
 
 impl Unitary for Gate {

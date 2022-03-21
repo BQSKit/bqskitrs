@@ -67,6 +67,10 @@ impl HilbertSchmidtResidualFn {
             eye: Array2::eye(size),
         }
     }
+
+    pub fn is_sendable(&self) -> bool {
+        self.circ.is_sendable()
+    }
 }
 
 impl CostFn for HilbertSchmidtResidualFn {
@@ -110,6 +114,15 @@ impl DifferentiableResidualFn for HilbertSchmidtResidualFn {
 pub enum ResidualFunction {
     HilbertSchmidt(HilbertSchmidtResidualFn),
     Dynamic(Box<dyn DifferentiableResidualFn>),
+}
+
+impl ResidualFunction {
+    pub fn is_sendable(&self) -> bool {
+        match self {
+            ResidualFunction::HilbertSchmidt(hs) => hs.is_sendable(),
+            ResidualFunction::Dynamic(_) => false,
+        }
+    }
 }
 
 impl CostFn for ResidualFunction {

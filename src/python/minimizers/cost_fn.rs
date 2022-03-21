@@ -85,16 +85,28 @@ impl PyHilberSchmidtCostFn {
         self.get_cost(py, params)
     }
 
-    pub fn get_cost(&self, _py: Python, params: Vec<f64>) -> f64 {
-        self.cost_fn.get_cost(&params)
+    pub fn get_cost(&self, py: Python, params: Vec<f64>) -> f64 {
+        if self.cost_fn.is_sendable() {
+            py.allow_threads(|| self.cost_fn.get_cost(&params))
+        } else {
+            self.cost_fn.get_cost(&params)
+        }
     }
 
-    pub fn get_grad(&self, _py: Python, params: Vec<f64>) -> Vec<f64> {
-        self.cost_fn.get_grad(&params)
+    pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Vec<f64> {
+        if self.cost_fn.is_sendable() {
+            py.allow_threads(|| self.cost_fn.get_grad(&params))
+        } else {
+            self.cost_fn.get_grad(&params)
+        }
     }
 
-    pub fn get_cost_and_grad(&self, _py: Python, params: Vec<f64>) -> (f64, Vec<f64>) {
-        self.cost_fn.get_cost_and_grad(&params)
+    pub fn get_cost_and_grad(&self, py: Python, params: Vec<f64>) -> (f64, Vec<f64>) {
+        if self.cost_fn.is_sendable() {
+            py.allow_threads(|| self.cost_fn.get_cost_and_grad(&params))
+        } else {
+            self.cost_fn.get_cost_and_grad(&params)
+        }
     }
 }
 

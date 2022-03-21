@@ -10,7 +10,7 @@ use num_complex::Complex64;
 
 /// Trait defining the signature of a cost function used by minimizers.
 #[enum_dispatch]
-pub trait CostFn {
+pub trait CostFn: Send {
     fn get_cost(&self, params: &[f64]) -> f64;
 }
 
@@ -40,6 +40,10 @@ impl HilbertSchmidtCostFn {
     pub fn new(circ: Circuit, target: Array2<Complex64>) -> Self {
         HilbertSchmidtCostFn { circ, target }
     }
+
+    pub fn is_sendable(&self) -> bool {
+        self.circ.is_sendable()
+    }
 }
 
 impl CostFn for HilbertSchmidtCostFn {
@@ -68,6 +72,15 @@ impl DifferentiableCostFn for HilbertSchmidtCostFn {
 pub enum CostFunction {
     HilbertSchmidt(HilbertSchmidtCostFn),
     Dynamic(Box<dyn DifferentiableCostFn>),
+}
+
+impl CostFunction {
+    pub fn is_sendable(&self) -> bool {
+        match self {
+            CostFunction::HilbertSchmidt(hs) => hs.is_sendable(),
+            CostFunction::Dynamic(_) => false,
+        }
+    }
 }
 
 impl CostFn for CostFunction {

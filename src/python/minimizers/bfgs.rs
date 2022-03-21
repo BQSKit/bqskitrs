@@ -36,7 +36,11 @@ impl PyBfgsJacSolver {
             Ok(fun) => Ok(fun),
             Err(err) => Err(PyTypeError::new_err(err.to_string())),
         }?;
-        let x = solv.minimize(&cost_fun, &x0_rust);
+        let x = if cost_fun.is_sendable() {
+            py.allow_threads(move || solv.minimize(&cost_fun, &x0_rust))
+        } else {
+            solv.minimize(&cost_fun, &x0_rust)
+        };
         Ok(x.into_pyarray(py).to_owned())
     }
 

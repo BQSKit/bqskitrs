@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::circuit::operation::Operation;
 use crate::circuit::Circuit;
@@ -54,7 +54,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
                 && ((pygate.hasattr("get_grad")? && pygate.hasattr("get_unitary_and_grad")?)
                     || pygate.hasattr("optimize")?)
             {
-                let dynamic: Rc<dyn DynGate> = Rc::new(PyGate::new(pygate.into()));
+                let dynamic: Arc<dyn DynGate + Send + Sync> = Arc::new(PyGate::new(pygate.into()));
                 Ok(Gate::Dynamic(dynamic))
             } else {
                 Err(exceptions::PyValueError::new_err(format!(
@@ -101,14 +101,21 @@ impl PyCircuit {
     }
 
     pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<Complex64>> {
-        self.circ
-            .get_utry(&params, &self.circ.constant_gates)
-            .into_pyarray(py)
-            .to_owned()
+        if self.circ.is_sendable() {
+            py.allow_threads(move || self.circ.get_utry(&params, &self.circ.constant_gates))
+        } else {
+            self.circ.get_utry(&params, &self.circ.constant_gates)
+        }
+        .into_pyarray(py)
+        .to_owned()
     }
 
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {
-        let grad = self.circ.get_grad(&params, &self.circ.constant_gates);
+        let grad = if self.circ.is_sendable() {
+            py.allow_threads(move || self.circ.get_grad(&params, &self.circ.constant_gates))
+        } else {
+            self.circ.get_grad(&params, &self.circ.constant_gates)
+        };
         grad.into_pyarray(py).to_owned()
     }
 
@@ -117,9 +124,15 @@ impl PyCircuit {
         py: Python,
         params: Vec<f64>,
     ) -> (Py<PyArray2<Complex64>>, Py<PyArray3<Complex64>>) {
-        let (utry, grad) = self
-            .circ
-            .get_utry_and_grad(&params, &self.circ.constant_gates);
+        let (utry, grad) = if self.circ.is_sendable() {
+            py.allow_threads(move || {
+                self.circ
+                    .get_utry_and_grad(&params, &self.circ.constant_gates)
+            })
+        } else {
+            self.circ
+                .get_utry_and_grad(&params, &self.circ.constant_gates)
+        };
         (
             utry.into_pyarray(py).to_owned(),
             grad.into_pyarray(py).to_owned(),

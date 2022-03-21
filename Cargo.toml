@@ -1,7 +1,7 @@
 [package]
 name = "bqskitrs"
-version = "0.1.0"
-authors = ["Ethan Smith <ethanhs@berkeley.edu>"]
+version = "0.2.0-rc.1"
+authors = ["Ethan Smith <ethanhs@lbl.gov>"]
 license = "LGPL-2.1 AND BSD-3-Clause"
 edition = "2018"
 build = "build.rs"
@@ -105,22 +105,6 @@ codegen-units = 1
 opt-level = 3
 debug = true
 
-[package.metadata.maturin]
-classifier = [
-    'Programming Language :: Python',
-    'Programming Language :: Rust',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Development Status :: 4 - Beta',
-    'Intended Audience :: Science/Research',
-    'Topic :: Software Development :: Compilers',
-    'Topic :: Scientific/Engineering :: Physics',
-    'Operating System :: Microsoft :: Windows',
-    'Operating System :: POSIX :: Linux',
-    'Operating System :: MacOS',
-]
 
 [package.metadata.vcpkg]
 git = "https://github.com/microsoft/vcpkg"

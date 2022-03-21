@@ -6,6 +6,20 @@ requires = [
 ]
 build-backend = "maturin"
 
+[project]
+name = "bqskitrs"
+version = "0.2.0.rc1"
+maintainers = [
+    {name = "Ethan Smith", email = "ethanhs@lbl.gov"},
+    {name = "Ed Younis", email = "edyounis@lbl.gov"},
+]
+license = "LGPL-2.1 AND BSD-3-Clause"
+readme = "README.md"
+requires-python = ">=3.7"
+
+[project.urls]
+Source = "https://github.com/bqskit/bqskitrs"
+
 [tool.maturin]
 manylinux = "off"
 bindings = "pyo3"

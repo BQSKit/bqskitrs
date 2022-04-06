@@ -1,6 +1,6 @@
 use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
-use crate::r;
+use crate::{r, i};
 
 use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;
@@ -39,7 +39,7 @@ impl Unitary for CRYGate {
 impl Gradient for CRYGate {
     fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
         let dcos = -1. * r!(params[0] / 2.).sin() / 2.;
-        let dsin = r!((params[0] / 2.).cos() / 2.);
+        let dsin = i!(-1.) * r!((params[0] / 2.).cos() / 2.);
         let zero = r!(0.0);
         Array3::from_shape_vec(
             (1, 4, 4),
@@ -59,7 +59,7 @@ impl Gradient for CRYGate {
         let cos = r!((params[0] / 2.).cos());
         let sin = r!((params[0] / 2.).sin());
         let dcos = -1. * r!(params[0] / 2.).sin() / 2.;
-        let dsin = r!((params[0] / 2.).cos() / 2.);
+        let dsin = i!(-1.) * r!((params[0] / 2.).cos() / 2.);
         let zero = r!(0.0);
         let one = r!(1.0);
 

@@ -1,6 +1,6 @@
 use std::{ops::MulAssign, vec};
 
-use ndarray::Array2;
+use ndarray::{Array2, ArrayView2};
 use num_complex::Complex64;
 use squaremat::*;
 
@@ -118,9 +118,33 @@ pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array
     for transposition in perm.transpositions() {
         mat.swap_rows(transposition.0, transposition.1);
     }
-    if num_qubits - num_core_qubits > 0 {
+    if num_qubits as isize - num_core_qubits as isize > 0 {
         let id = Array2::eye(2usize.pow((num_qubits - num_core_qubits) as u32));
         mat = mat.kron(&id);
     }
     mat
+}
+
+
+/// Permute a unitary so that it spans a circuit of size and is in the correct location
+pub fn permute_unitary(
+    unitary: ArrayView2<Complex64>,
+    size: usize,
+    location: Vec<usize>,
+) -> Array2<Complex64> {
+    if size <= 0 {
+        panic!("Invalid size for permute_unitary");
+    }
+    if unitary.shape()[0] == 0 || unitary.shape()[1] == 0 {
+        panic!("Invalid shape for unitary");
+    }
+    let normal: Vec<usize> = (0..size).collect();
+    if location == normal {
+        return unitary.to_owned();
+    }
+    let id = Array2::eye(2usize.pow((size - location.len()) as u32));
+    let permutation_matrix = calc_permutation_matrix(size, location);
+    let full_unitary = unitary.kron(&id);
+    let permuted = permutation_matrix.matmul(full_unitary.view());
+    permuted.matmul(permutation_matrix.t())
 }

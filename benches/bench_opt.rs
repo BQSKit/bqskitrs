@@ -30,61 +30,70 @@ fn make_circuit(positions: &[usize], num_qubits: usize, u3: bool) -> Circuit {
     // Fill in the first row
     for qubit in 0..num_qubits {
         if u3 {
-            ops.push(Operation::new(
-                U3Gate::new().into(),
-                vec![qubit],
-                vec![0.0; 3],
+            ops.push((
+                0,
+                Operation::new(U3Gate::new().into(), vec![qubit], vec![0.0; 3]),
             ));
         } else {
-            ops.push(Operation::new(
-                VariableUnitaryGate::new(1, vec![2]).into(),
-                vec![qubit],
-                vec![0.0; 8],
+            ops.push((
+                0,
+                Operation::new(
+                    VariableUnitaryGate::new(1, vec![2]).into(),
+                    vec![qubit],
+                    vec![0.0; 8],
+                ),
             ));
         }
     }
 
-    for position in positions {
-        ops.push(Operation::new(
-            ConstantGate::new(0, 2).into(),
-            vec![*position, *position + 1],
-            vec![],
+    for (cycle, position) in positions.iter().enumerate() {
+        ops.push((
+            cycle,
+            Operation::new(
+                ConstantGate::new(0, 2).into(),
+                vec![*position, *position + 1],
+                vec![],
+            ),
         ));
-        ops.push(Operation::new(
-            RXGate::new().into(),
-            vec![*position],
-            vec![0.0],
+        ops.push((
+            cycle,
+            Operation::new(RXGate::new().into(), vec![*position], vec![0.0]),
         ));
-        ops.push(Operation::new(
-            RZGate::new().into(),
-            vec![*position],
-            vec![0.0],
+        ops.push((
+            cycle,
+            Operation::new(RZGate::new().into(), vec![*position], vec![0.0]),
         ));
-        ops.push(Operation::new(
-            RXGate::new().into(),
-            vec![*position],
-            vec![0.0],
+        ops.push((
+            cycle,
+            Operation::new(RXGate::new().into(), vec![*position], vec![0.0]),
         ));
-        ops.push(Operation::new(
-            RZGate::new().into(),
-            vec![*position],
-            vec![0.0],
+        ops.push((
+            cycle,
+            Operation::new(RZGate::new().into(), vec![*position], vec![0.0]),
         ));
         if u3 {
-            ops.push(Operation::new(
-                U3Gate::new().into(),
-                vec![position + 1],
-                vec![0.0; 3],
+            ops.push((
+                cycle,
+                Operation::new(U3Gate::new().into(), vec![position + 1], vec![0.0; 3]),
             ));
         } else {
-            ops.push(Operation::new(
-                VariableUnitaryGate::new(1, vec![2]).into(),
-                vec![position + 1],
-                vec![0.0; 8],
+            ops.push((
+                cycle,
+                Operation::new(
+                    VariableUnitaryGate::new(1, vec![2]).into(),
+                    vec![position + 1],
+                    vec![0.0; 8],
+                ),
             ));
         }
     }
-    Circuit::new(num_qubits, vec![2; num_qubits], ops, constant_gates)
+    Circuit::new(
+        num_qubits,
+        vec![2; num_qubits],
+        ops,
+        constant_gates,
+        bqskitrs::circuit::SimulationBackend::Matrix,
+    )
 }
 
 fn optimize_ceres(minimizer: &CeresJacSolver, cost: &ResidualFunction, x0: &[f64]) {

@@ -86,15 +86,9 @@ crate-type = ["cdylib", "rlib"]
 criterion = "0.3"
 ndarray-npy = { version = "0.8.1", default-features = false, features = ["num-complex-0_4"] }
 num-complex = { version = "0.4.0", features = ["serde"] }
-numpy = { version = "0.14.1" }
-pyo3 = { version = "0.14.5", features = ["extension-module", "abi3-py37"] }
 
 [[bench]]
 name = "bench_opt"
-harness = false
-
-[[bench]]
-name = "slow"
 harness = false
 
 [profile.release]

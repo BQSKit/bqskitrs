@@ -125,14 +125,13 @@ pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array
     mat
 }
 
-
 /// Permute a unitary so that it spans a circuit of size and is in the correct location
 pub fn permute_unitary(
     unitary: ArrayView2<Complex64>,
     size: usize,
     location: Vec<usize>,
 ) -> Array2<Complex64> {
-    if size <= 0 {
+    if size == 0 {
         panic!("Invalid size for permute_unitary");
     }
     if unitary.shape()[0] == 0 || unitary.shape()[1] == 0 {

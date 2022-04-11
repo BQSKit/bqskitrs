@@ -19,12 +19,7 @@ pub struct PyCeresJacSolver {
 impl PyCeresJacSolver {
     #[new]
     #[args(num_threads = "1", ftol = "1e-6", gtol = "1e-10", report = "false")]
-    fn new(
-        num_threads: usize,
-        ftol: f64,
-        gtol: f64,
-        report: bool,
-    ) -> Self {
+    fn new(num_threads: usize, ftol: f64, gtol: f64, report: bool) -> Self {
         println!("{:?}, {:?}, {:?}, {:?}", num_threads, ftol, gtol, report);
         Self {
             distance_metric: String::from("Residuals"),

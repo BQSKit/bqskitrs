@@ -23,7 +23,7 @@ fn main() -> Result<(), std::io::Error> {
                 .stdout,
         )
         .unwrap()
-        .replace("\n", "");
+        .replace('\n', "");
         let mut gcc_dir = PathBuf::new();
         gcc_dir.push(prefix.clone());
 

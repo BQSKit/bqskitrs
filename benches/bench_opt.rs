@@ -209,7 +209,7 @@ fn bench_ceres(c: &mut Criterion) {
             b.iter(|| {
                 optimize_ceres(
                     &minimizer,
-                    &ResidualFunction::HilbertSchmidt(cost.clone()),
+                    &ResidualFunction::HilbertSchmidt(Box::new(cost.clone())),
                     &x0,
                 )
             })

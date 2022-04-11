@@ -50,9 +50,8 @@ impl Circuit {
         let mut current_cycle = 0usize;
         for (cycle, op) in &ops_with_cycles {
             num_params += op.gate.num_params();
-            match op.gate {
-                Gate::Dynamic(_) => sendable = false,
-                _ => (),
+            if let Gate::Dynamic(_) = op.gate {
+                sendable = false
             }
             if *cycle != current_cycle {
                 cycle_boundaries.push((current_cycle, *cycle));
@@ -141,17 +140,19 @@ impl Unitary for Circuit {
                 } else {
                     let mut param_idx = 0;
                     for op in &self.ops {
-                        let mut utry = op.get_utry(
-                            &params[param_idx..param_idx + op.num_params()],
-                            const_gates,
-                        );
+                        let mut utry = op
+                            .get_utry(&params[param_idx..param_idx + op.num_params()], const_gates);
                         param_idx += op.num_params();
                         utry = permute_unitary(utry.view(), self.size, op.location.clone());
                         matrices.push(utry);
                     }
                 }
 
-                matrices.iter().cloned().reduce(|a, b| b.matmul(a.view())).unwrap()
+                matrices
+                    .iter()
+                    .cloned()
+                    .reduce(|a, b| b.matmul(a.view()))
+                    .unwrap()
             }
         }
     }
@@ -273,9 +274,12 @@ impl Gradient for Circuit {
 
                 let dim = 2usize.pow(self.size as u32);
 
-                
                 let mut left = Array2::eye(dim);
-                let mut right = matrices.iter().cloned().reduce(|a, b| b.matmul(a.view())).unwrap();
+                let mut right = matrices
+                    .iter()
+                    .cloned()
+                    .reduce(|a, b| b.matmul(a.view()))
+                    .unwrap();
                 let mut full_grads = Vec::with_capacity(num_grads);
                 let mut out_grad = Array3::zeros((
                     num_grads,

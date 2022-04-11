@@ -23,11 +23,11 @@ impl Minimizer for BfgsJacSolver {
         let f = |x: &[f64], gradient: Option<&mut [f64]>, _user_data: &mut ()| -> f64 {
             let dsq;
             if let Some(grad) = gradient {
-                let (d, j) = cost_fn.get_cost_and_grad(&x);
+                let (d, j) = cost_fn.get_cost_and_grad(x);
                 dsq = d;
                 grad.copy_from_slice(&j);
             } else {
-                dsq = cost_fn.get_cost(&x);
+                dsq = cost_fn.get_cost(x);
             }
             dsq
         };

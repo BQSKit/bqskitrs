@@ -162,9 +162,9 @@ impl<'source> FromPyObject<'source> for ResidualFunction {
         let gil = Python::acquire_gil();
         let py = gil.python();
         match ob.extract::<Py<PyHilberSchmidtResidualFn>>() {
-            Ok(fun) => Ok(ResidualFunction::HilbertSchmidt(
+            Ok(fun) => Ok(ResidualFunction::HilbertSchmidt(Box::new(
                 fun.try_borrow(py)?.cost_fn.clone(),
-            )),
+            ))),
             Err(..) => {
                 if is_cost_fn_obj(ob)? {
                     let fun = PyResidualFn::new(ob.into());

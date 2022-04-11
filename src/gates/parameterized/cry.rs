@@ -1,6 +1,6 @@
 use crate::gates::{Gradient, Size};
 use crate::gates::{Optimize, Unitary};
-use crate::{r, i};
+use crate::{i, r};
 
 use ndarray::{Array2, Array3, ArrayViewMut2};
 use num_complex::Complex64;

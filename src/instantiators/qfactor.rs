@@ -115,7 +115,7 @@ impl Instantiate for QFactorInstantiator {
         }
         circuit.set_params(x0);
 
-        let mut unitary_builder = self.initialize_circuit_tensor(&circuit, &target);
+        let mut unitary_builder = self.initialize_circuit_tensor(circuit, &target);
         let mut dist1 = 0.0f64;
         let mut dist2 = 0.0f64;
 
@@ -146,7 +146,7 @@ impl Instantiate for QFactorInstantiator {
             }
 
             if it % self.reinit_delay == 0 {
-                unitary_builder = self.initialize_circuit_tensor(&circuit, &target)
+                unitary_builder = self.initialize_circuit_tensor(circuit, &target)
             }
         }
         circuit.get_params()

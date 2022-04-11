@@ -18,35 +18,12 @@ pub struct PyCeresJacSolver {
 #[pymethods]
 impl PyCeresJacSolver {
     #[new]
-    fn new(
-        num_threads: Option<usize>,
-        ftol: Option<f64>,
-        gtol: Option<f64>,
-        report: Option<bool>,
-    ) -> Self {
-        let threads = if let Some(threads) = num_threads {
-            threads
-        } else {
-            1
-        };
-        let ftol = if let Some(ftol) = ftol {
-            ftol
-        } else {
-            5e-16 // This comes from the value in qsearch
-        };
-        let gtol = if let Some(gtol) = gtol {
-            gtol
-        } else {
-            1e-15 // This comes from the value in qsearch
-        };
-        let report = if let Some(report) = report {
-            report
-        } else {
-            false
-        };
+    #[args(num_threads = "1", ftol = "1e-6", gtol = "1e-10", report = "false")]
+    fn new(num_threads: usize, ftol: f64, gtol: f64, report: bool) -> Self {
+        println!("{:?}, {:?}, {:?}, {:?}", num_threads, ftol, gtol, report);
         Self {
             distance_metric: String::from("Residuals"),
-            num_threads: threads,
+            num_threads,
             ftol,
             gtol,
             report,

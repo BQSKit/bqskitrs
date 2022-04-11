@@ -112,7 +112,7 @@ impl DifferentiableResidualFn for HilbertSchmidtResidualFn {
 }
 
 pub enum ResidualFunction {
-    HilbertSchmidt(HilbertSchmidtResidualFn),
+    HilbertSchmidt(Box<HilbertSchmidtResidualFn>),
     Dynamic(Box<dyn DifferentiableResidualFn>),
 }
 

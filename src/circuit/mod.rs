@@ -23,28 +23,6 @@ pub enum SimulationBackend {
 
 type Cycle = usize;
 
-fn kron_ops(
-    circuit_size: usize,
-    ops: &[Operation],
-    params: &[f64],
-    const_gates: &[Array2<Complex64>],
-) -> (usize, Array2<Complex64>) {
-    let first_op = &ops[0];
-    let mut result = first_op.get_utry(&params[..first_op.num_params()], const_gates);
-    result = permute_unitary(result.view(), circuit_size, first_op.location.clone());
-    let mut index = first_op.num_params();
-    for op in &ops[1..] {
-        let utry = op.get_utry(&params[index..index + op.num_params()], const_gates);
-        result = result.kron(&permute_unitary(
-            utry.view(),
-            circuit_size,
-            op.location.clone(),
-        ));
-        index += op.num_params();
-    }
-    (index, result)
-}
-
 /// A list of gates in a quantum circuit
 #[derive(Clone)]
 pub struct Circuit {

@@ -4,3 +4,4 @@ Cargo.lock
 .env/
 venv/
 .venv/
+wheelhouse/

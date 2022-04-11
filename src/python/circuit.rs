@@ -79,8 +79,8 @@ impl<'source> FromPyObject<'source> for Circuit {
         let mut constant_gates = vec![];
         for cycle_with_operation in iter {
             let tup = cycle_with_operation?.downcast::<PyTuple>()?;
-            let py_cycle = tup.get_item(0);
-            let op = tup.get_item(1);
+            let py_cycle = tup.get_item(0)?;
+            let op = tup.get_item(1)?;
             let cycle = py_cycle.extract::<usize>()?;
             let pygate = op.getattr("gate")?;
             let location = op.getattr("location")?.extract::<Vec<usize>>()?;

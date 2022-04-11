@@ -80,7 +80,6 @@ impl PyHilberSchmidtCostFn {
         })
     }
 
-    #[call]
     pub fn __call__(&self, py: Python, params: Vec<f64>) -> f64 {
         self.get_cost(py, params)
     }

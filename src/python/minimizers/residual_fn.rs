@@ -115,7 +115,6 @@ impl PyHilberSchmidtResidualFn {
         })
     }
 
-    #[call]
     pub fn __call__(&self, py: Python, params: Vec<f64>) -> Vec<f64> {
         self.get_residuals(py, params)
     }

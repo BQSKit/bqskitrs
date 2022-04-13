@@ -128,14 +128,12 @@ impl Unitary for Circuit {
             }
             SimulationBackend::Matrix => {
                 let mut matrices = vec![];
-                let mut locations = vec![];
 
                 if params.is_empty() {
                     for op in &self.ops {
                         let mut utry = op.get_utry(&[], const_gates);
                         utry = permute_unitary(utry.view(), self.size, op.location.clone());
                         matrices.push(utry);
-                        locations.push(&op.location);
                     }
                 } else {
                     let mut param_idx = 0;

@@ -93,7 +93,7 @@ impl<'source> FromPyObject<'source> for Circuit {
             radixes,
             ops,
             constant_gates,
-            crate::circuit::SimulationBackend::Matrix,
+            crate::circuit::SimulationBackend::Tensor,
         ))
     }
 }

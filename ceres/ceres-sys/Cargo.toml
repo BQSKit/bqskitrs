@@ -10,11 +10,11 @@ edition = "2018"
 cxx = "1.0"
 
 [build-dependencies]
-cxx-build = "1.0"
-cmake = "0.1.45"
+cxx-build = "1.0.79"
+cmake = "0.1.48"
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
-vcpkg = "0.2.13"
+vcpkg = "0.2.15"
 
 [features]
 static = []

@@ -4,9 +4,9 @@ use numpy::IntoPyArray;
 use numpy::PyArray1;
 use pyo3::types::PyTuple;
 
-use crate::minimizers::BfgsJacSolver;
-use crate::minimizers::CostFunction;
-use crate::minimizers::Minimizer;
+use crate::ir::inst::minimizers::BfgsJacSolver;
+use crate::ir::inst::minimizers::CostFunction;
+use crate::ir::inst::minimizers::Minimizer;
 
 use pyo3::exceptions::PyTypeError;
 

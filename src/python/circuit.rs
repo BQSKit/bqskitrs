@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use crate::circuit::operation::Operation;
-use crate::circuit::Circuit;
-use crate::gates::Gradient;
-use crate::gates::Unitary;
-use crate::gates::*;
+use crate::ir::operation::Operation;
+use crate::ir::circuit::Circuit;
+use crate::ir::gates::Gradient;
+use crate::ir::gates::Unitary;
+use crate::ir::gates::*;
 
 use ndarray::Array2;
-use num_complex::Complex64;
+use ndarray_linalg::c64;
 
 use numpy::IntoPyArray;
 use numpy::PyArray2;
@@ -18,7 +18,7 @@ use pyo3::{prelude::*, types::PyIterator};
 
 use super::gate::PyGate;
 
-fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>) -> PyResult<Gate> {
+fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<c64>>) -> PyResult<Gate> {
     let cls = pygate.getattr("__class__")?;
     let dunder_name = cls.getattr("__name__")?;
     let name = dunder_name.extract::<&str>()?;
@@ -45,7 +45,7 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<Complex64>>)
             if pygate.getattr("num_params")?.extract::<usize>()? == 0 {
                 let args: Vec<f64> = vec![];
                 let pyobj = pygate.call_method("get_unitary", (args,), None)?;
-                let pymat = pyobj.getattr("numpy")?.extract::<&PyArray2<Complex64>>()?;
+                let pymat = pyobj.getattr("numpy")?.extract::<&PyArray2<c64>>()?;
                 let mat = pymat.to_owned_array();
                 let gate_size = pygate.getattr("num_qudits")?.extract::<usize>()?;
                 let index = constant_gates.len();
@@ -93,7 +93,6 @@ impl<'source> FromPyObject<'source> for Circuit {
             radixes,
             ops,
             constant_gates,
-            crate::circuit::SimulationBackend::Tensor,
         ))
     }
 }
@@ -110,14 +109,14 @@ impl PyCircuit {
         PyCircuit { circ }
     }
 
-    pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<Complex64>> {
+    pub fn get_unitary(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<c64>> {
         self.circ
             .get_utry(&params, &self.circ.constant_gates)
             .into_pyarray(py)
             .to_owned()
     }
 
-    pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<Complex64>> {
+    pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray3<c64>> {
         let grad = self.circ.get_grad(&params, &self.circ.constant_gates);
         grad.into_pyarray(py).to_owned()
     }
@@ -126,7 +125,7 @@ impl PyCircuit {
         &self,
         py: Python,
         params: Vec<f64>,
-    ) -> (Py<PyArray2<Complex64>>, Py<PyArray3<Complex64>>) {
+    ) -> (Py<PyArray2<c64>>, Py<PyArray3<c64>>) {
         let (utry, grad) = self
             .circ
             .get_utry_and_grad(&params, &self.circ.constant_gates);

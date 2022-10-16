@@ -1,8 +1,8 @@
 use std::{ops::MulAssign, vec};
 
 use ndarray::{Array2, ArrayView2};
-use num_complex::Complex64;
-use squaremat::*;
+use ndarray_linalg::c64;
+use crate::squaremat::*;
 
 pub struct Permutation {
     perm: Vec<usize>,
@@ -97,7 +97,7 @@ pub fn swap(x: usize, y: usize, n: usize) -> Permutation {
     }
 }
 
-pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array2<Complex64> {
+pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array2<c64> {
     let max_qubit = location.iter().max().unwrap();
     let num_core_qubits = max_qubit + 1;
     let num_gate_qubits = location.len();
@@ -127,10 +127,10 @@ pub fn calc_permutation_matrix(num_qubits: usize, location: Vec<usize>) -> Array
 
 /// Permute a unitary so that it spans a circuit of size and is in the correct location
 pub fn permute_unitary(
-    unitary: ArrayView2<Complex64>,
+    unitary: ArrayView2<c64>,
     size: usize,
     location: Vec<usize>,
-) -> Array2<Complex64> {
+) -> Array2<c64> {
     if size == 0 {
         panic!("Invalid size for permute_unitary");
     }

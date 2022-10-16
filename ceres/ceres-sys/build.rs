@@ -34,7 +34,7 @@ fn main() {
         } else {
             let ceres = Config::new("ceres-solver")
                 .define("EXPORT_BUILD_DIR", "ON")
-                .define("CXX_THREADS", "ON")
+                .define("NO_THREADS", "ON")
                 .define("BUILD_TESTING", "OFF")
                 .define("BUILD_BENCHMARKS", "OFF")
                 .define("MINIGLOG", "ON")
@@ -46,7 +46,7 @@ fn main() {
                 .define("SUITESPARSE", "OFF")
                 .define("CXSPARSE", "OFF")
                 .build();
-            println!("cargo:rustc-link-search=native={}/lib", ceres.display());
+            println!("cargo:rustc-link-search=native={}/build/lib", ceres.display());
             let profile = std::env::var("PROFILE").unwrap();
             let lib_name = match profile.as_str() {
                 "debug" => "ceres-debug",
@@ -63,6 +63,7 @@ fn main() {
                 ceres.display()
             ));
             let targetinclude = std::path::PathBuf::from(format!("{}/include", ceres.display()));
+            // let compiledlib = std::path::PathBuf::from(format!("{}/lib/{}.a", ceres.display(), lib_name));
             let mut b = cxx_build::bridge("src/solve_silent.rs");
             b.flag_if_supported("-std=c++14")
                 .flag_if_supported("-Wno-unused-parameter")
@@ -72,6 +73,7 @@ fn main() {
                 .include(localinclude)
                 .include(targetminiglog)
                 .include(targetinclude)
+                // .object(compiledlib)
                 .include("src")
                 .compile("autocxx-ceres");
             println!("cargo:rerun-if-changed=src/lib.rs");

@@ -1,11 +1,11 @@
 use crate::{
-    circuit::Circuit,
-    minimizers::{
+    ir::circuit::Circuit,
+    ir::inst::minimizers::{
         CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction,
     },
 };
 use ndarray::Array2;
-use num_complex::Complex64;
+use ndarray_linalg::c64;
 use numpy::IntoPyArray;
 use numpy::{PyArray1, PyArray2};
 use pyo3::{prelude::*, types::PyTuple};
@@ -102,11 +102,11 @@ impl PyHilberSchmidtResidualFn {
             "UnitaryMatrix" => {
                 let np = target_matrix
                     .getattr("numpy")?
-                    .extract::<&PyArray2<Complex64>>()?;
+                    .extract::<&PyArray2<c64>>()?;
                 np.to_owned_array()
             }
             "ndarray" => target_matrix
-                .extract::<&PyArray2<Complex64>>()?
+                .extract::<&PyArray2<c64>>()?
                 .to_owned_array(),
             _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
         };

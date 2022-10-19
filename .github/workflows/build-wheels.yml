@@ -1,0 +1,123 @@
+name: Build Wheels
+
+on:
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  linux:
+    name: Manylinux Wheel Build
+    
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+      
+      - name: Build Manylinux Wheels
+        run: >
+          docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
+          edyounis/bqskitrs-manylinux:1.0 build  --release
+          --features=openblas --compatibility=manylinux2014
+      
+      - name: Upload Wheel Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-wheels
+          path: target/wheels
+
+  windows:
+    name: Windows Wheel Build
+    
+    runs-on: windows-latest
+    steps:
+      - name: Setup Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      
+      - name: Install Python Dependencies
+        run: pip install -U setuptools wheel maturin
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install Other Dependencies (Windows)
+        run: >
+          cargo install cargo-vcpkg && vcpkg install
+          ceres:x64-windows-static-md
+          eigen3:x64-windows-static-md
+          openblas:x64-windows-static-md
+          glog:x64-windows-static-md
+          gflags:x64-windows-static-md
+          clapack:x64-windows-static-md
+          && vcpkg integrate install
+
+      - name: Build Windows Wheels
+        run: maturin build --features="openblas,openblas-src/system" --release
+      
+      - name: Upload Wheel Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-wheels
+          path: target/wheels
+
+  macos:
+    name: macOS Wheel Build
+    
+    runs-on: macOS-latest
+    steps:
+      - name: Setup Repo
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      
+      - name: Install Python Dependencies
+        run: pip install -U setuptools wheel maturin
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install Apple Intel Target
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Install Apple Silicon Target
+        run: rustup target add aarch64-apple-darwin
+
+      - name: Install Other Dependencies (macOS)
+        run: brew install gcc ceres-solver eigen lapack
+      
+      - name: Build macOS x86_64 Wheels
+        run: maturin build --features="accelerate" --release --target x86_64-apple-darwin
+      
+      - name: Build macOS aarch64 Wheels
+        run: maturin build --features="accelerate" --release --target aarch64-apple-darwin
+      
+      - name: Upload Wheel Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-wheels
+          path: target/wheels

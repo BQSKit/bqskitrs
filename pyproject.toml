@@ -8,18 +8,19 @@ build-backend = "maturin"
 
 [project]
 name = "bqskitrs"
-version = "0.3.0"
+version = "0.3.0.rc1"
 maintainers = [
     {name = "Ethan Smith", email = "ethanhs@lbl.gov"},
     {name = "Ed Younis", email = "edyounis@lbl.gov"},
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 
 [project.urls]
 Source = "https://github.com/bqskit/bqskitrs"
 
 [tool.maturin]
-manylinux = "off"
+compatibility = "off"
 bindings = "pyo3"
+features = ["openblas"]

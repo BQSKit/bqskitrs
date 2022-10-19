@@ -13,7 +13,7 @@ fn main() {
             #[cfg(target_os = "windows")]
             let mut b = cxx_build::bridge("src/solve_silent.rs");
             #[cfg(target_os = "windows")]
-            b.flag_if_supported("/std:c++14")
+            b.flag_if_supported("/std:c++17")
                 .includes(
                     ceres
                         .include_paths
@@ -23,6 +23,7 @@ fn main() {
                         .map(|include| include.to_str().unwrap()),
                 )
                 .include("src")
+                .define("GLOG_NO_ABBREVIATED_SEVERITIES", "ON")
                 .compile("autocxx-ceres");
             #[cfg(target_os = "windows")]
             println!("cargo:rerun-if-changed=src/lib.rs");
@@ -34,10 +35,11 @@ fn main() {
         } else {
             let ceres = Config::new("ceres-solver")
                 .define("EXPORT_BUILD_DIR", "ON")
-                .define("NO_THREADS", "ON")
+                .define("CERES_THREADING_MODEL", "NO_THREADS")
                 .define("BUILD_TESTING", "OFF")
                 .define("BUILD_BENCHMARKS", "OFF")
                 .define("MINIGLOG", "ON")
+                .define("GFLAGS", "OFF")
                 .define("LAPACK", "OFF")
                 .define("CUSTOM_BLAS", "OFF")
                 .define("SCHUR_SPECIALIZATIONS", "OFF")
@@ -65,7 +67,7 @@ fn main() {
             let targetinclude = std::path::PathBuf::from(format!("{}/include", ceres.display()));
             // let compiledlib = std::path::PathBuf::from(format!("{}/lib/{}.a", ceres.display(), lib_name));
             let mut b = cxx_build::bridge("src/solve_silent.rs");
-            b.flag_if_supported("-std=c++14")
+            b.flag_if_supported("-std=c++17")
                 .flag_if_supported("-Wno-unused-parameter")
                 .include(sysinclude3)
                 .include(sysinclude)
@@ -86,7 +88,7 @@ fn main() {
         let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
         let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
         let mut b = cxx_build::bridge("src/solve_silent.rs");
-        b.flag_if_supported("-std=c++14")
+        b.flag_if_supported("-std=c++17")
             .flag_if_supported("-Wno-unused-parameter")
             .include(sysinclude3)
             .include(sysinclude)

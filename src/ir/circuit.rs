@@ -19,6 +19,7 @@ pub struct Circuit {
     pub cycle_boundaries: Vec<(usize, usize)>,
     pub num_params: usize,
     pub sendable: bool,
+    pub dim: usize,
 }
 
 impl Circuit {
@@ -42,6 +43,7 @@ impl Circuit {
                 current_cycle += 1;
             }
         }
+        let dim: usize = radixes.iter().product();
         Circuit {
             size,
             radixes,
@@ -50,6 +52,7 @@ impl Circuit {
             cycle_boundaries,
             num_params,
             sendable,
+            dim,
         }
     }
 
@@ -153,20 +156,11 @@ impl Gradient for Circuit {
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut full_grads = Vec::with_capacity(num_grads);
-        // /////////////////////////////////////////////////////////////
-        // let grad_dim: usize = self.radixes.iter().product();
-        // let mut out_grad = Array3::zeros((
-        //     num_grads,
-        //     grad_dim,
-        //     grad_dim,
-        // ));
-
         let mut out_grad = Array3::zeros((
             num_grads,
-            2usize.pow(self.size as u32),
-            2usize.pow(self.size as u32),
+            self.dim,
+            self.dim,
         ));
-        // /////////////////////////////////////////////////////////////
 
         for (m, location) in matrices.iter().zip(locations.iter()) {
             right.apply_right(m.view(), location, false);
@@ -174,22 +168,22 @@ impl Gradient for Circuit {
 
         for (m, location, d_m) in izip!(matrices, locations, grads) {
             // /////////////////////////////////////////////////////////////
-            let perm = calc_permutation_matrix(self.size, (*location).clone());
-            let perm_t = perm.t();
-            let id = Array2::eye(2usize.pow((self.size - location.len()) as u32));
+            // let perm = calc_permutation_matrix(self.size, (*location).clone());
+            // let perm_t = perm.t();
+            // let id = Array2::eye(2usize.pow((self.size - location.len()) as u32));
             // /////////////////////////////////////////////////////////////
 
-            right.apply_left(m.view(), location, true);
+            right.apply_left(m.conj().t(), location, false);
             let right_utry = right.get_utry();
-            let left_utry = left.get_utry();
+            // let left_utry = left.get_utry();
             for grad in d_m.outer_iter() {
-                // let left_grad = left.eval_apply_right(grad.view(), location);
-                // full_grads.push(right_utry.matmul(left_grad.view()));
-                let mut full_grad = grad.kron(&id);
-                full_grad = perm.matmul(full_grad.view());
-                full_grad = full_grad.matmul(perm_t);
-                let right_grad = right_utry.matmul(full_grad.view());
-                full_grads.push(right_grad.matmul(left_utry.view()));
+                let left_grad = left.eval_apply_right(grad.view(), location);
+                full_grads.push(right_utry.dot(&left_grad.view()));
+                // let mut full_grad = grad.kron(&id);
+                // full_grad = perm.matmul(full_grad.view());
+                // full_grad = full_grad.matmul(perm_t);
+                // let right_grad = right_utry.matmul(full_grad.view());
+                // full_grads.push(right_grad.matmul(left_utry.view()));
             }
             left.apply_right(m.view(), location, false);
         }

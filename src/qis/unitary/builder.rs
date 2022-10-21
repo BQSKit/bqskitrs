@@ -2,32 +2,39 @@ use ndarray::{Array2, ArrayD, ArrayView2, Ix2};
 use ndarray_linalg::c64;
 
 use crate::utils::{argsort, trace};
-use crate::squaremat::*;
+use itertools::Itertools;
 
 /// A type to build unitaries using tensor networks
 pub struct UnitaryBuilder {
-    size: usize,
+    num_qudits: usize,
+    num_idxs: usize,
+    dim: usize,
+    pi: Vec<usize>,
     radixes: Vec<usize>,
     tensor: Option<ArrayD<c64>>,
-    dim: usize,
 }
 
 impl UnitaryBuilder {
-    pub fn new(size: usize, radixes: Vec<usize>) -> Self {
+    pub fn new(num_qudits: usize, radixes: Vec<usize>) -> Self {
         let dim = radixes.iter().product();
+        let num_idxs = num_qudits * 2;
+        let pi = Vec::from_iter(0..num_qudits*2);
         let mut tensor = Array2::<c64>::eye(dim).into_dyn();
         tensor = tensor
             .into_shape([&radixes[..], &radixes[..]].concat())
             .unwrap();
         UnitaryBuilder {
-            size,
+            num_qudits,
+            num_idxs,
+            dim,
+            pi,
             radixes,
             tensor: Some(tensor),
-            dim,
         }
     }
 
-    pub fn get_utry(&self) -> Array2<c64> {
+    pub fn get_utry(&mut self) -> Array2<c64> {
+        self.permute_idxs(&Vec::from_iter(0..self.num_idxs));
         match &self.tensor {
             Some(t) => t
                 .to_shape((self.dim, self.dim))
@@ -39,162 +46,148 @@ impl UnitaryBuilder {
         }
     }
 
-    pub fn apply_right(&mut self, utry: ArrayView2<c64>, location: &[usize], inverse: bool) {
-        let left_perm = location.iter();
-        let mid_perm = (0..self.size).filter(|x| !location.contains(&x));
-        let right_perm = (0..self.size).map(|x| x + self.size);
+    pub fn permute_idxs(&mut self, pi: &Vec<usize>) {
+        let composed: Vec<usize> = self.pi.iter()
+            .enumerate()
+            .sorted_by(|(_idx_a, a), (_idx_b, b)| a.cmp(b))
+            .map(|(idx, _a)| pi[idx])
+            .collect();
+        self.tensor = Some(self.tensor.take().unwrap().permuted_axes(composed));
+    }
 
-        let left_dim: usize = left_perm.clone().map(|i| self.radixes[*i]).product();
-        let unitary = if inverse {
-            let conj = utry.conj();
-            conj.reversed_axes()
-        } else {
-            utry.to_owned()
-        };
+    pub fn apply_right(&mut self, utry: ArrayView2<c64>, location: &[usize], inverse: bool) {
+        // Permute Tensor Indicies
+        let left_perm = location.iter();
+        let right_perm = (0..self.num_idxs).filter(|x| !location.contains(&x));
         let mut perm = vec![];
         perm.extend(left_perm);
-        perm.extend(mid_perm);
         perm.extend(right_perm);
+        self.permute_idxs(&perm);
 
-        let permuted = self.tensor.take().unwrap().permuted_axes(perm.clone());
-        let dim: usize = permuted.shape().iter().product();
-        let reshaped = permuted
-            .to_shape((left_dim, dim / left_dim))
+        // Reshape
+        let owned_tensor = self.tensor.take().unwrap();
+        let shape = owned_tensor.shape().clone();
+        let left_dim: usize = shape[..location.len()].iter().product();
+        let reshaped = owned_tensor
+            .to_shape((left_dim, self.dim * self.dim / left_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = unitary.matmul(reshaped.view());
-
-        let radixes = [&self.radixes[..], &self.radixes[..]].concat();
-        let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
+        
+        // Apply Unitary
+        let prod = utry.dot(&reshaped.view());
         let reshape_back = prod
-            .into_shape(shape)
+            .to_shape(shape)
             .expect("Failed to reshape matrix product back");
-        self.tensor = Some(reshape_back.permuted_axes(argsort(perm)).into_dyn());
+        self.tensor = Some(reshape_back.to_owned());
     }
 
     pub fn apply_left(&mut self, utry: ArrayView2<c64>, location: &[usize], inverse: bool) {
-        let left_perm = 0..self.size;
-        let mid_perm = left_perm.clone().filter_map(|x| {
-            if location.contains(&x) {
-                None
-            } else {
-                Some(x + self.size)
-            }
-        });
-        let right_perm = location.iter().map(|x| x + self.size);
-
-        let right_dim: usize = right_perm
-            .clone()
-            .map(|i| self.radixes[i - self.size])
-            .product();
-
-        let unitary = if inverse {
-            utry.conj().reversed_axes()
-        } else {
-            utry.to_owned()
-        };
+        // Permute Tensor Indicies
+        let right_perm: Vec<usize> = location.iter().map(|x| x + self.num_qudits).collect();
+        let left_perm = (0..self.num_idxs).filter(|x| !right_perm.contains(&x));
         let mut perm = vec![];
         perm.extend(left_perm);
-        perm.extend(mid_perm);
         perm.extend(right_perm);
+        self.permute_idxs(&perm);
 
-        let permuted = self.tensor.take().unwrap().permuted_axes(perm.clone());
-        let dim: usize = permuted.shape().iter().product();
-        let reshaped = permuted
-            .to_shape((dim / right_dim, right_dim))
+        // Reshape
+        let owned_tensor = self.tensor.take().unwrap();
+        let shape = owned_tensor.shape().clone();
+        let right_dim: usize = shape[shape.len()-location.len()..].iter().product();
+        let reshaped = owned_tensor
+            .to_shape((self.dim * self.dim / right_dim, right_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = reshaped.view().matmul(unitary.view());
-        let radixes = [&self.radixes[..], &self.radixes[..]].concat();
-        let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
-        let reshape_back = prod
-            .into_shape(shape)
-            .expect("Failed to reshape matrix product back");
-        self.tensor = Some(reshape_back.permuted_axes(argsort(perm)).into_dyn());
-    }
-
-    pub fn eval_apply_right(&self, m: ArrayView2<c64>, location: &[usize]) -> Array2<c64> {
-        let left_perm = location.iter();
-        let mid_perm = (0..self.size).filter(|x| !location.contains(&x));
-        let right_perm = (0..self.size).map(|x| x + self.size);
-
-        let left_dim: usize = left_perm.clone().map(|i| self.radixes[*i]).product();
-
-        let matrix = m.to_owned();
-
-        let mut perm = vec![];
-        perm.extend(left_perm);
-        perm.extend(mid_perm);
-        perm.extend(right_perm);
-
-        let mut tensor_copy = self.tensor.clone();
-        let permuted = tensor_copy.take().unwrap().permuted_axes(perm.clone());
-        let dim: usize = permuted.shape().iter().product();
-        let reshaped = permuted
-            .to_shape((left_dim, dim / left_dim))
-            .expect("Cannot reshape tensor to matrix");
-        let prod = matrix.matmul(reshaped.view());
-
-        let radixes = [&self.radixes[..], &self.radixes[..]].concat();
-        let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
-        let reshape_back = prod
-            .into_shape(shape)
-            .expect("Failed to reshape matrix product back");
-        let eval_tensor = reshape_back.permuted_axes(argsort(perm)).into_dyn();
-        let matrix_dim = self.dim.clone();
-        let eval_matrix = eval_tensor
-            .to_shape((matrix_dim, matrix_dim))
-            .expect("Cannot reshape tensor to matrix");
-        eval_matrix.to_owned()
-    }
-
-    pub fn eval_apply_left(&self, m: ArrayView2<c64>, location: &[usize]) -> Array2<c64> {
-        let left_perm = 0..self.size;
-        let mid_perm = left_perm.clone().filter_map(|x| {
-            if location.contains(&x) {
-                None
-            } else {
-                Some(x + self.size)
-            }
-        });
-        let right_perm = location.iter().map(|x| x + self.size);
-
-        let right_dim: usize = right_perm
-            .clone()
-            .map(|i| self.radixes[i - self.size])
-            .product();
         
+        // Apply Unitary
+        let prod = reshaped.dot(&utry);
+        let reshape_back = prod
+            .to_shape(shape)
+            .expect("Failed to reshape matrix product back");
+        self.tensor = Some(reshape_back.to_owned());
+    }
+
+    pub fn eval_apply_right(&mut self, m: ArrayView2<c64>, location: &[usize]) -> Array2<c64> {
+        // Permute Tensor Indicies
+        let left_perm = location.iter();
+        let right_perm = (0..self.num_idxs).filter(|x| !location.contains(&x));
         let mut perm = vec![];
         perm.extend(left_perm);
-        perm.extend(mid_perm);
         perm.extend(right_perm);
+        self.permute_idxs(&perm);
 
-        let mut tensor_copy = self.tensor.clone();
-        let permuted = tensor_copy.take().unwrap().permuted_axes(perm.clone());
-        let dim: usize = permuted.shape().iter().product();
-        let reshaped = permuted
-            .to_shape((dim / right_dim, right_dim))
+        // Copy and Reshape
+        let copied_tensor = match &self.tensor {
+            Some(t) => t.clone(),
+            None => panic!("Tensor was unexpectedly None."),
+        };
+        let shape = copied_tensor.shape().clone();
+        let left_dim: usize = shape[..location.len()].iter().product();
+        let reshaped = copied_tensor
+            .to_shape((left_dim, self.dim * self.dim / left_dim))
             .expect("Cannot reshape tensor to matrix");
-        let prod = reshaped.view().matmul(m.view());
+        
+        // Apply matrix and reshuffle back to a unitary
+        let normal = Vec::from_iter(0..self.num_idxs);
+        let composed: Vec<usize> = self.pi.iter()
+            .enumerate()
+            .sorted_by(|(_idx_a, a), (_idx_b, b)| a.cmp(b))
+            .map(|(idx, _a)| normal[idx])
+            .collect();
+        m.dot(&reshaped.view())
+            .to_shape(shape)
+            .unwrap()
+            .permuted_axes(composed)
+            .to_shape((self.dim, self.dim))
+            .unwrap()
+            .into_dimensionality::<Ix2>()
+            .unwrap()
+            .to_owned()
+    }
 
-        let radixes = [&self.radixes[..], &self.radixes[..]].concat();
-        let shape: Vec<usize> = perm.iter().map(|p| radixes[*p]).collect();
-        let reshape_back = prod
-            .into_shape(shape)
-            .expect("Failed to reshape matrix product back");
-        let eval_tensor = reshape_back.permuted_axes(argsort(perm)).into_dyn();
-        let matrix_dim = self.dim.clone();
-        let eval_matrix = eval_tensor
-            .to_shape((matrix_dim, matrix_dim))
+    pub fn eval_apply_left(&mut self, m: ArrayView2<c64>, location: &[usize]) -> Array2<c64> {
+        // Permute Tensor Indicies
+        let right_perm: Vec<usize> = location.iter().map(|x| x + self.num_qudits).collect();
+        let left_perm = (0..self.num_idxs).filter(|x| !right_perm.contains(&x));
+        let mut perm = vec![];
+        perm.extend(left_perm);
+        perm.extend(right_perm);
+        self.permute_idxs(&perm);
+
+        // Copy and Reshape
+        let copied_tensor = match &self.tensor {
+            Some(t) => t.clone(),
+            None => panic!("Tensor was unexpectedly None."),
+        };
+        let shape = copied_tensor.shape().clone();
+        let right_dim: usize = shape[shape.len()-location.len()..].iter().product();
+        let reshaped = copied_tensor
+            .to_shape((self.dim * self.dim / right_dim, right_dim))
             .expect("Cannot reshape tensor to matrix");
-        eval_matrix.to_owned()
+        
+        // Apply Unitary
+        let normal = Vec::from_iter(0..self.num_idxs);
+        let composed: Vec<usize> = self.pi.iter()
+            .enumerate()
+            .sorted_by(|(_idx_a, a), (_idx_b, b)| a.cmp(b))
+            .map(|(idx, _a)| normal[idx])
+            .collect();
+        reshaped.dot(&m)
+            .to_shape(shape)
+            .unwrap()
+            .permuted_axes(composed)
+            .to_shape((self.dim, self.dim))
+            .unwrap()
+            .into_dimensionality::<Ix2>()
+            .unwrap()
+            .to_owned()
     }
 
     pub fn calc_env_matrix(&self, location: &[usize]) -> Array2<c64> {
-        let mut left_perm: Vec<usize> = (0..self.size).filter(|x| !location.contains(x)).collect();
+        let mut left_perm: Vec<usize> = (0..self.num_qudits).filter(|x| !location.contains(x)).collect();
         let left_perm_copy = left_perm.clone();
-        let left_extension = left_perm_copy.iter().map(|x| x + self.size);
+        let left_extension = left_perm_copy.iter().map(|x| x + self.num_qudits);
         left_perm.extend(left_extension);
         let mut right_perm = location.to_owned();
-        right_perm.extend(location.iter().map(|x| x + self.size));
+        right_perm.extend(location.iter().map(|x| x + self.num_qudits));
 
         let mut perm = vec![];
         perm.append(&mut left_perm);
@@ -205,8 +198,8 @@ impl UnitaryBuilder {
         };
         let reshaped = a
             .to_shape([
-                2usize.pow(self.size as u32 - location.len() as u32),
-                2usize.pow(self.size as u32 - location.len() as u32),
+                2usize.pow(self.num_qudits as u32 - location.len() as u32),
+                2usize.pow(self.num_qudits as u32 - location.len() as u32),
                 2usize.pow(location.len() as u32),
                 2usize.pow(location.len() as u32),
             ])

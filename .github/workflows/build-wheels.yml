@@ -1,8 +1,8 @@
 name: Build Wheels
 
-on:
-  release:
-    types: [published]
+on: [push]
+  # release:
+  #   types: [published]
 
 env:
   CARGO_TERM_COLOR: always

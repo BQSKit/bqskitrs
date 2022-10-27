@@ -22,17 +22,6 @@ extern crate intel_mkl_src;
 #[link(name = "openblas")]
 extern "C" {}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = CNOTfn{};
-        println!("{:?}", result.get_utry(&[0.0]));
-    }
-}
-
 #[macro_export]
 macro_rules! c {
     ($re:expr, $im:expr) => {

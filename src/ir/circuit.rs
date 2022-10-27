@@ -1,9 +1,10 @@
 use crate::qis::unitary::UnitaryBuilder;
 use super::gates::{Gate, Gradient, Unitary};
 use super::Operation;
+use itertools::Itertools;
 
 use itertools::izip;
-use ndarray::{Array2, Array3};
+use ndarray::{Array2, Array3, ArrayD, ArrayView2, Ix2};
 use ndarray_linalg::c64;
 use crate::squaremat::*;
 use crate::permutation_matrix::calc_permutation_matrix;
@@ -155,41 +156,64 @@ impl Gradient for Circuit {
 
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
-        let mut full_grads = Vec::with_capacity(num_grads);
         let mut out_grad = Array3::zeros((
             num_grads,
             self.dim,
             self.dim,
         ));
+        let mut out_iter = out_grad.outer_iter_mut();
 
         for (m, location) in matrices.iter().zip(locations.iter()) {
             right.apply_right(m.view(), location, false);
         }
 
         for (m, location, d_m) in izip!(matrices, locations, grads) {
-            // /////////////////////////////////////////////////////////////
-            // let perm = calc_permutation_matrix(self.size, (*location).clone());
-            // let perm_t = perm.t();
-            // let id = Array2::eye(2usize.pow((self.size - location.len()) as u32));
-            // /////////////////////////////////////////////////////////////
+            // 1. Permute and reshape right tensor for location
+            let right_perm: Vec<usize> = location.iter().map(|x| x + right.num_qudits).collect();
+            let left_perm = (0..right.num_idxs).filter(|x| !right_perm.contains(&x));
+            let mut perm = vec![];
+            perm.extend(left_perm);
+            perm.extend(right_perm);
+            right.permute_idxs(perm);
 
-            right.apply_left(m.conj().t(), location, false);
-            let right_utry = right.get_utry();
-            // let left_utry = left.get_utry();
-            for grad in d_m.outer_iter() {
-                let left_grad = left.eval_apply_right(grad.view(), location);
-                full_grads.push(right_utry.dot(&left_grad.view()));
-                // let mut full_grad = grad.kron(&id);
-                // full_grad = perm.matmul(full_grad.view());
-                // full_grad = full_grad.matmul(perm_t);
-                // let right_grad = right_utry.matmul(full_grad.view());
-                // full_grads.push(right_grad.matmul(left_utry.view()));
-            }
+            let owned_tensor = right.tensor.take().unwrap();
+            let shape = right.get_current_shape();
+            let right_dim: usize = shape[shape.len()-location.len()..].iter().product();
+            let reshaped = owned_tensor
+                .to_shape((right.dim * right.dim / right_dim, right_dim))
+                .expect("Cannot reshape tensor to matrix");
+            
+            // Apply inverse gate to the left of the right tensor
+            let prod = reshaped.dot(&m.conj().t());
+            let reshape_back = prod
+                .into_shape(shape.clone())
+                .expect("Failed to reshape matrix product back");
+            right.tensor = Some(reshape_back.to_owned());
+
+            // Store left unitary and then apply gate to left on right
+            let left_utry = left.get_utry();
             left.apply_right(m.view(), location, false);
-        }
 
-        for (mut arr, grad) in out_grad.outer_iter_mut().zip(full_grads) {
-            arr.assign(&grad);
+            // Compute un-permute order
+            let revert: Vec<usize> = right.pi.clone().iter()
+                .enumerate()
+                .sorted_by(|(_idx_a, a), (_idx_b, b)| a.cmp(b))
+                .map(|(idx, _a)| idx)
+                .collect();
+
+            // Calculate all gradients
+            for grad in d_m.outer_iter() {
+                let right_grad = reshaped.dot(&grad.view())
+                    .into_shape(shape.clone())
+                    .expect("Failed to reshape matrix product back")
+                    .permuted_axes(revert.clone());
+                let reshaped_grad = right_grad.to_shape((right.dim, right.dim))
+                    .unwrap()
+                    .into_dimensionality::<Ix2>()
+                    .unwrap();
+                let full_grad = reshaped_grad.dot(&left_utry.view());
+                out_iter.next().unwrap().assign(&full_grad);
+            }
         }
 
         (left.get_utry(), out_grad)

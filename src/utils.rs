@@ -60,7 +60,7 @@ pub fn matrix_distance_squared_jac(
         .collect();
     let jacs = jus
         .iter()
-        .map(|jusi| -(jusi.re * s.re + jusi.im * s.im) * size as f64 / s.norm())
+        .map(|jusi| -(jusi.re * s.re + jusi.im * s.im) / (size as f64 * s.norm()))
         .collect();
     (dsq, jacs)
 }

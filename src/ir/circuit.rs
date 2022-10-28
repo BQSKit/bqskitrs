@@ -156,12 +156,12 @@ impl Gradient for Circuit {
 
         let mut left = UnitaryBuilder::new(self.size, self.radixes.clone());
         let mut right = UnitaryBuilder::new(self.size, self.radixes.clone());
+        let mut full_grads = Vec::with_capacity(num_grads);
         let mut out_grad = Array3::zeros((
             num_grads,
             self.dim,
             self.dim,
         ));
-        let mut out_iter = out_grad.outer_iter_mut();
 
         for (m, location) in matrices.iter().zip(locations.iter()) {
             right.apply_right(m.view(), location, false);
@@ -207,8 +207,7 @@ impl Gradient for Circuit {
                     .unwrap()
                     .into_dimensionality::<Ix2>()
                     .unwrap();
-                let full_grad = reshaped_grad.dot(&left_utry.view());
-                out_iter.next().unwrap().assign(&full_grad);
+                full_grads.push(reshaped_grad.dot(&left_utry.view()));
             }
 
             // Reshape the right tensor back
@@ -216,6 +215,10 @@ impl Gradient for Circuit {
                 .into_shape(shape.clone())
                 .expect("Failed to reshape matrix product back");
             right.tensor = Some(reshape_back.to_owned());
+        }
+
+        for (mut arr, grad) in out_grad.outer_iter_mut().zip(full_grads) {
+            arr.assign(&grad);
         }
 
         (left.get_utry(), out_grad)

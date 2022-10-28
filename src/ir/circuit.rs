@@ -168,7 +168,7 @@ impl Gradient for Circuit {
         }
 
         for (m, location, d_m) in izip!(matrices, locations, grads) {
-            // 1. Permute and reshape right tensor for location
+            // Permute and reshape right tensor for location
             let right_perm: Vec<usize> = location.iter().map(|x| x + right.num_qudits).collect();
             let left_perm = (0..right.num_idxs).filter(|x| !right_perm.contains(&x));
             let mut perm = vec![];
@@ -185,10 +185,6 @@ impl Gradient for Circuit {
             
             // Apply inverse gate to the left of the right tensor
             let prod = reshaped.dot(&m.conj().t());
-            let reshape_back = prod
-                .to_shape(shape.clone())
-                .expect("Failed to reshape matrix product back");
-            right.tensor = Some(reshape_back.to_owned());
 
             // Store left unitary and then apply gate to left on right
             let left_utry = left.get_utry();
@@ -214,6 +210,12 @@ impl Gradient for Circuit {
                 let full_grad = reshaped_grad.dot(&left_utry.view());
                 out_iter.next().unwrap().assign(&full_grad);
             }
+
+            // Reshape the right tensor back
+            let reshape_back = prod
+                .into_shape(shape.clone())
+                .expect("Failed to reshape matrix product back");
+            right.tensor = Some(reshape_back.to_owned());
         }
 
         (left.get_utry(), out_grad)

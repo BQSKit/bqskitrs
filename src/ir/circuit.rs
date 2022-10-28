@@ -186,7 +186,7 @@ impl Gradient for Circuit {
             // Apply inverse gate to the left of the right tensor
             let prod = reshaped.dot(&m.conj().t());
             let reshape_back = prod
-                .into_shape(shape.clone())
+                .to_shape(shape.clone())
                 .expect("Failed to reshape matrix product back");
             right.tensor = Some(reshape_back.to_owned());
 
@@ -203,7 +203,7 @@ impl Gradient for Circuit {
 
             // Calculate all gradients
             for grad in d_m.outer_iter() {
-                let right_grad = reshaped.dot(&grad.view())
+                let right_grad = prod.dot(&grad.view())
                     .into_shape(shape.clone())
                     .expect("Failed to reshape matrix product back")
                     .permuted_axes(revert.clone());

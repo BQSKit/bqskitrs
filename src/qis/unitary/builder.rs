@@ -91,7 +91,11 @@ impl UnitaryBuilder {
             .expect("Cannot reshape tensor to matrix");
         
         // Apply Unitary
-        let prod = utry.dot(&reshaped.view());
+        let prod = if inverse {
+            utry.conj().reversed_axes().dot(&reshaped.view())
+        } else {
+            utry.dot(&reshaped.view())
+        };
         let reshape_back = prod
             .into_shape(shape)
             .expect("Failed to reshape matrix product back");
@@ -117,7 +121,11 @@ impl UnitaryBuilder {
             .expect("Cannot reshape tensor to matrix");
         
         // Apply Unitary
-        let prod = reshaped.dot(&utry);
+        let prod = if inverse {
+            reshaped.dot(&utry.conj().reversed_axes())
+        } else {
+            reshaped.dot(&utry)
+        };
         let reshape_back = prod
             .into_shape(shape)
             .expect("Failed to reshape matrix product back");

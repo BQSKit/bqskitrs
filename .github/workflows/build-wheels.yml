@@ -79,7 +79,7 @@ jobs:
   macos:
     name: macOS Wheel Build
     
-    runs-on: macOS-latest
+    runs-on: macOS-12
     steps:
       - name: Setup Repo
         uses: actions/checkout@v3

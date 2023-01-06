@@ -88,16 +88,6 @@ fn main() {
         let localinclude3 = std::path::PathBuf::from("/usr/local/include/eigen3");
         let localinclude = std::path::PathBuf::from("/usr/local/include/eigen");
         let mut b = cxx_build::bridge("src/solve_silent.rs");
-        let target = env::var("TARGET").unwrap();
-        if target.contains("apple") {
-            println!("cargo:rustc-link-lib=dylib=c++");
-            b.flag_if_supported("-stdlib=libc++");
-        } else if target.contains("linux") {
-            println!("cargo:rustc-link-lib=dylib=stdc++");
-        } else if target.contains("win") {
-        } else {
-            unimplemented!()
-        }
         b.flag_if_supported("-std=c++17")
             .flag_if_supported("-Wno-unused-parameter")
             .include(sysinclude3)
@@ -109,5 +99,14 @@ fn main() {
 
         println!("cargo:rerun-if-changed=src/lib.rs");
         println!("cargo:rerun-if-changed=ceres-solver");
+    }
+    let target = env::var("TARGET").unwrap();
+    if target.contains("apple") {
+        println!("cargo:rustc-link-lib=dylib=c++");
+    } else if target.contains("linux") {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    } else if target.contains("win") {
+    } else {
+        unimplemented!()
     }
 }

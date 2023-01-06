@@ -10,7 +10,7 @@ edition = "2018"
 cxx = "=1.0.80"
 
 [build-dependencies]
-cxx-build = "1.0.79"
+cxx-build = "=1.0.80"
 cmake = "0.1.48"
 
 [target.'cfg(target_os = "windows")'.build-dependencies]

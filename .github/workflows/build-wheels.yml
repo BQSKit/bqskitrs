@@ -22,7 +22,7 @@ jobs:
       - name: Build Manylinux Wheels
         run: >
           docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
-          edyounis/bqskitrs-manylinux:1.0 build  --release
+          edyounis/bqskitrs-manylinux:1.1 build  --release
           --features=openblas --compatibility=manylinux2014
       
       - name: Upload Wheel Artifacts

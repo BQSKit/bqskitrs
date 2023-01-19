@@ -1,11 +1,11 @@
 use ndarray::{Array2, Array3};
-use num_complex::Complex64;
+use ndarray_linalg::c64;
 use numpy::{PyArray1, PyArray2, PyArray3};
 use pyo3::prelude::*;
 
 use std::fmt;
 
-use crate::gates::{DynGate, Gradient, Optimize, Size, Unitary};
+use crate::ir::gates::{DynGate, Gradient, Optimize, Size, Unitary};
 
 pub struct PyGate {
     gate: PyObject,
@@ -38,7 +38,7 @@ impl Unitary for PyGate {
             .expect("Return of num_params could not be converted into integral type.")
     }
 
-    fn get_utry(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array2<Complex64> {
+    fn get_utry(&self, params: &[f64], _const_gates: &[Array2<c64>]) -> Array2<c64> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -52,14 +52,14 @@ impl Unitary for PyGate {
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pyutry,
         }
-        .extract::<Py<PyArray2<Complex64>>>(py)
+        .extract::<Py<PyArray2<c64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
         pyarray.into_ref(py).to_owned_array()
     }
 }
 
 impl Gradient for PyGate {
-    fn get_grad(&self, params: &[f64], _const_gates: &[Array2<Complex64>]) -> Array3<Complex64> {
+    fn get_grad(&self, params: &[f64], _const_gates: &[Array2<c64>]) -> Array3<c64> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -75,7 +75,7 @@ impl Gradient for PyGate {
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pygrads,
         }
-        .extract::<Py<PyArray3<Complex64>>>(py)
+        .extract::<Py<PyArray3<c64>>>(py)
         .expect("Failed to convert return of get_grad into complex matrix.")
         .into_ref(py)
         .to_owned_array()
@@ -84,8 +84,8 @@ impl Gradient for PyGate {
     fn get_utry_and_grad(
         &self,
         params: &[f64],
-        _const_gates: &[Array2<Complex64>],
-    ) -> (Array2<Complex64>, Array3<Complex64>) {
+        _const_gates: &[Array2<c64>],
+    ) -> (Array2<c64>, Array3<c64>) {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray1::from_slice(py, params).to_object(py),);
@@ -102,7 +102,7 @@ impl Gradient for PyGate {
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pyutry,
         }
-        .extract::<Py<PyArray2<Complex64>>>(py)
+        .extract::<Py<PyArray2<c64>>>(py)
         .expect("Failed to convert return of get array into complex matrix.");
 
         let grads = match pygrads.as_ref(py).hasattr("numpy").unwrap() {
@@ -111,7 +111,7 @@ impl Gradient for PyGate {
                 .expect("Failed to convert UnitaryMatrix to ndarray."),
             false => pygrads,
         }
-        .extract::<Py<PyArray3<Complex64>>>(py)
+        .extract::<Py<PyArray3<c64>>>(py)
         .expect("Failed to convert return of get_grad into complex matrix.");
 
         (
@@ -134,7 +134,7 @@ impl Size for PyGate {
 }
 
 impl Optimize for PyGate {
-    fn optimize(&self, env_matrix: ndarray::ArrayViewMut2<Complex64>) -> Vec<f64> {
+    fn optimize(&self, env_matrix: ndarray::ArrayViewMut2<c64>) -> Vec<f64> {
         let gil = Python::acquire_gil();
         let py = gil.python();
         let args = (PyArray2::from_array(py, &env_matrix.to_owned()).to_object(py),);

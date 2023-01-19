@@ -1,6 +1,6 @@
 use pyo3::{exceptions::PyTypeError, prelude::*, types::PyTuple};
 
-use crate::minimizers::{CeresJacSolver, Minimizer, ResidualFunction};
+use crate::ir::inst::minimizers::{CeresJacSolver, Minimizer, ResidualFunction};
 
 use numpy::IntoPyArray;
 use numpy::PyArray1;

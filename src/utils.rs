@@ -1,16 +1,13 @@
 use ndarray::{s, Array1, Array2, Array3, ArrayView2, ArrayView3, ArrayView4, Ix2};
 use ndarray_einsum_beta::einsum;
-use num_complex::Complex64;
-use squaremat::*;
-
-use crate::{i, r};
-
-use std::f64::consts::{E, PI};
+use ndarray_linalg::c64;
+use crate::squaremat::*;
+use crate::r;
 
 use itertools::Itertools;
 
-pub fn trace(arr: ArrayView4<Complex64>) -> Array2<Complex64> {
-    let mut out = Array2::<Complex64>::zeros((arr.shape()[2], arr.shape()[3]));
+pub fn trace(arr: ArrayView4<c64>) -> Array2<c64> {
+    let mut out = Array2::<c64>::zeros((arr.shape()[2], arr.shape()[3]));
     for i in 0..arr.shape()[2] {
         for j in 0..arr.shape()[3] {
             out[(i, j)] = arr
@@ -34,7 +31,7 @@ pub fn argsort(v: Vec<usize>) -> Vec<usize> {
         .collect()
 }
 
-pub fn matrix_distance_squared(a: ArrayView2<Complex64>, b: ArrayView2<Complex64>) -> f64 {
+pub fn matrix_distance_squared(a: ArrayView2<c64>, b: ArrayView2<c64>) -> f64 {
     // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]
     // converted to
     // 1 - np.abs(np.sum(np.multiply(A,np.conj(B)))) / A.shape[0]
@@ -44,9 +41,9 @@ pub fn matrix_distance_squared(a: ArrayView2<Complex64>, b: ArrayView2<Complex64
 }
 
 pub fn matrix_distance_squared_jac(
-    u: ArrayView2<Complex64>,
-    m: ArrayView2<Complex64>,
-    j: ArrayView3<Complex64>,
+    u: ArrayView2<c64>,
+    m: ArrayView2<c64>,
+    j: ArrayView3<c64>,
 ) -> (f64, Vec<f64>) {
     let size = u.shape()[0];
     let s = u.multiply(&m.conj().view()).sum();
@@ -54,7 +51,7 @@ pub fn matrix_distance_squared_jac(
     if s == r!(0.0) {
         return (dsq, vec![std::f64::INFINITY; j.len()]);
     }
-    let jus: Vec<Complex64> = j
+    let jus: Vec<c64> = j
         .outer_iter()
         .map(|ji| einsum("ij,ij->", &[&u, &ji.conj()]).unwrap().sum())
         .collect();
@@ -67,8 +64,8 @@ pub fn matrix_distance_squared_jac(
 
 /// Calculates the residuals
 pub fn matrix_residuals(
-    a_matrix: &Array2<Complex64>,
-    b_matrix: &Array2<Complex64>,
+    a_matrix: &Array2<c64>,
+    b_matrix: &Array2<c64>,
     identity: &Array2<f64>,
 ) -> Vec<f64> {
     let calculated_mat = b_matrix.matmul(a_matrix.conj().t());
@@ -78,9 +75,9 @@ pub fn matrix_residuals(
 }
 
 pub fn matrix_residuals_jac(
-    u: &Array2<Complex64>,
-    _m: &Array2<Complex64>,
-    jacs: &Array3<Complex64>,
+    u: &Array2<c64>,
+    _m: &Array2<c64>,
+    jacs: &Array3<c64>,
 ) -> Array2<f64> {
     let u_conj = u.conj();
     let size = u.shape()[0];
@@ -92,9 +89,4 @@ pub fn matrix_residuals_jac(
         row.assign(&data);
     }
     out.reversed_axes()
-}
-
-pub fn qft(n: usize) -> Array2<Complex64> {
-    let root = r!(E).powc(i!(2f64) * PI / n as f64);
-    Array2::from_shape_fn((n, n), |(x, y)| root.powf((x * y) as f64)) / (n as f64).sqrt()
 }

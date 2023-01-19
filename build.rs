@@ -5,7 +5,7 @@ use std::process::Command;
 fn main() -> Result<(), std::io::Error> {
     // Homebrew/macOS gcc don't add libgfortran to the rpath,
     // so we manually go prodding around for it here
-    if cfg!(target_os = "windows") && cfg!(feature = "static") {
+    if cfg!(target_os = "windows") {
         #[cfg(target_os = "windows")]
         let _lapack = vcpkg::Config::new()
             .target_triplet("x64-windows-static-md")

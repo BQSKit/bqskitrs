@@ -1,78 +1,50 @@
 [package]
 name = "bqskitrs"
-version = "0.2.3"
-authors = ["Ethan Smith <ethanhs@lbl.gov>"]
-license = "LGPL-2.1 AND BSD-3-Clause"
-edition = "2018"
-build = "build.rs"
-publish = false
-include = [
-    "src/**/*",
-    "LICENSE",
-    "README.md",
-    "build.rs",
-    "Dockerfile",
-    "pyproject.toml",
-    "squaremat/**/*",
-    "ceres/**/*",
+version = "0.3.0"
+authors = [
+    "Ethan Smith <ethanhs@lbl.gov>",
+    "Ed Younis <edyounis@lbl.gov>",
 ]
+publish = false
+license = "LGPL-2.1 AND BSD-3-Clause"
+edition = "2021"
+build = "build.rs"
 
 [features]
-python = ["numpy", "pyo3"]
-static = [
+
+openblas = [
     "openblas-src",
-    "blas-src/openblas",
     "openblas-src/static",
-    "openblas-src/cblas",
-    "openblas-src/lapacke",
     "ndarray-linalg/openblas-static",
-    "squaremat/openblas-static",
-    "ceres/static",
 ]
-default = [
-    "python",
-    "mimalloc/local_dynamic_tls",
-    "openblas-src",
-    "blas-src/openblas",
-    "openblas-src/system",
-    "openblas-src/cblas",
-    "openblas-src/lapacke",
-    "ndarray-linalg/openblas-system",
-    "squaremat/openblas-system",
+accelerate = [
+    "accelerate-src",
 ]
-accelerate = ["accelerate-src", "blas-src/accelerate", "squaremat/accelerate"]
-mkl = ["intel-mkl-src", "blas-src/intel-mkl", "squaremat/mkl", "ndarray-linalg/intel-mkl-system"]
+mkl = [
+    "intel-mkl-src",
+    "ndarray-linalg/intel-mkl-static"
+]
 
 [dependencies]
-num-complex = { version = "0.4.0", features = ["serde"] }
-ndarray = { version = "0.15.4", features = ["blas"] }
-ndarray-linalg = "0.14.1"
-blas-src = { version = "0.8.0", default-features = false }
-openblas-src = { version = "0.10.4", default-features = false, optional = true }
-accelerate-src = { version = "0.3.2", optional = true }
-intel-mkl-src = { version = "0.6.0", optional = true, features = ["mkl-static-lp64-seq"] }
-enum_dispatch = "0.3.8"
-numpy = { version = "0.16.2", optional = true }
-libc = "0.2.122"
-num-traits = "0.2.14"
-better-panic = "0.3.0"
-squaremat = { path="./squaremat" }
-md5 = "0.7.0"
-rand = "0.8.5"
-nlopt = "0.5.4"
-ceres = { path="./ceres" }
-itertools = "0.10.3"
-pyo3 = { version = "0.16.3", optional = true, features = ["extension-module", "abi3-py37"] }
-lax = "0.2.0"
-derive_more = "0.99.17"
-mimalloc = { version = "0.1.28", optional = true, default-features = false, features = ["local_dynamic_tls"] }
-ndarray_einsum_beta = "0.7.0"
+ndarray = { version = "0.15.6", features = ["blas"] }
+ndarray-linalg = "0.16.0"
 
-[patch.crates-io]
-# remove once https://github.com/blas-lapack-rs/blas-src/pull/9 is merged
-blas-src = { git="https://github.com/ethanhs/blas-src", branch="patch-1" }
-# Waiting on openblas-src to make a new 0.11 release...
-openblas-src = { git="https://github.com/blas-lapack-rs/openblas-src" }
+openblas-src = { version = "0.10.5", optional = true }
+accelerate-src = { version = "0.3.2", optional = true }
+intel-mkl-src = { version = "0.8.1", optional = true }
+
+ndarray_einsum_beta = "0.7.0"
+nlopt = "0.6.0"
+
+enum_dispatch = "0.3.8"
+itertools = "0.10.5"
+derive_more = "0.99.17"
+mimalloc = { version = "0.1.30", optional = true, default-features = false, features = ["local_dynamic_tls"] }
+
+ceres = { path="./ceres", features = ["static"] }
+
+numpy = "0.17.2"
+pyo3 = { version = "0.17.2", features = ["extension-module", "abi3-py38"] }
 
 [target.'cfg(target_os = "windows")'.build-dependencies]
 vcpkg = "0.2.15"
@@ -80,16 +52,7 @@ vcpkg = "0.2.15"
 [lib]
 name = "bqskitrs"
 path = "src/lib.rs"
-crate-type = ["cdylib", "rlib"]
-
-[dev-dependencies]
-criterion = "0.3.5"
-ndarray-npy = { version = "0.8.1", default-features = false, features = ["num-complex-0_4"] }
-num-complex = { version = "0.4.0", features = ["serde"] }
-
-[[bench]]
-name = "bench_opt"
-harness = false
+crate-type = ["cdylib"]
 
 [profile.release]
 lto = "fat"
@@ -97,16 +60,9 @@ codegen-units = 1
 opt-level = 3
 debug = true
 
-[profile.bench]
-lto = "fat"
-codegen-units = 1
-opt-level = 3
-debug = true
-
-
 [package.metadata.vcpkg]
 git = "https://github.com/microsoft/vcpkg"
-rev = "2021.05.12"
+rev = "2022.09.27"
 
 [package.metadata.vcpkg.target]
 x86_64-pc-windows-msvc = { triplet="x64-windows-static-md", install=[

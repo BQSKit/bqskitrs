@@ -1,10 +1,10 @@
-use num_complex::Complex64;
+use ndarray_linalg::c64;
 use numpy::PyArray2;
 use pyo3::prelude::*;
 
-use crate::{
+use crate::ir::{
     circuit::Circuit,
-    instantiators::{Instantiate, QFactorInstantiator},
+    inst::{Instantiate, QFactorInstantiator},
 };
 
 #[pyclass(name = "QFactorInstantiatorNative", subclass, module = "bqskitrs")]
@@ -45,11 +45,11 @@ impl PyQFactorInstantiator {
         target: PyObject,
         x0: Vec<f64>,
     ) -> PyResult<Vec<f64>> {
-        let target_rs = match target.extract::<Py<PyArray2<Complex64>>>(py) {
+        let target_rs = match target.extract::<Py<PyArray2<c64>>>(py) {
             Ok(arr) => arr,
             Err(..) => {
                 let target_np = target.getattr(py, "numpy")?;
-                target_np.extract::<Py<PyArray2<Complex64>>>(py)?
+                target_np.extract::<Py<PyArray2<c64>>>(py)?
             }
         };
         let target_rs = target_rs.as_ref(py).to_owned_array();

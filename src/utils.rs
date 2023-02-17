@@ -1,6 +1,7 @@
+use ndarray::ArrayView1;
 use ndarray::{s, Array1, Array2, Array3, ArrayView2, ArrayView3, ArrayView4, Ix2};
 use ndarray_einsum_beta::einsum;
-use ndarray_linalg::c64;
+use ndarray_linalg::{c64, Scalar};
 use crate::squaremat::*;
 use crate::r;
 
@@ -30,6 +31,38 @@ pub fn argsort(v: Vec<usize>) -> Vec<usize> {
         .map(|(idx, _a)| idx)
         .collect()
 }
+
+pub fn state_dot(a: ArrayView1<c64>, b: ArrayView1<c64>) -> c64 {
+    a.iter().zip(b.iter()).map(|(&x, &y)| x.conj() * y).sum::<c64>()
+}
+
+pub fn state_infidelity(a: ArrayView1<c64>, b: ArrayView1<c64>) -> f64 {
+    1.0 - state_dot(a, b).norm().powi(2)
+}
+
+pub fn state_residuals(a: ArrayView1<c64>, b: ArrayView1<c64>) -> Vec<f64> {
+    a.iter().zip(b.iter()).map(|(&x, &y)| (x-y).norm().square()).collect()
+}
+
+pub fn state_infidelity_jac(u: ArrayView1<c64>, m: ArrayView1<c64>, j: ArrayView2<c64>) -> (f64, Vec<f64>) {
+    let d = state_dot(u, m);
+    let infidelity = 1.0 - d.norm().powi(2);
+    let d_infidelity = j.outer_iter().map(|dv| {let dd = state_dot(u, dv); -2.0 * (d.re * dd.re + d.im * dd.im)}).collect();
+    println!("\n{:?}\n\n{:?}", infidelity, d_infidelity);
+    (infidelity, d_infidelity)
+}
+
+pub fn state_residuals_jac(u: ArrayView1<c64>, m: ArrayView1<c64>, j: ArrayView2<c64>) -> Array2<f64> {
+    let d: Vec<c64> = u.iter().zip(m.iter()).map(|(&x, &y)| x - y).collect();
+    let mut out = Array2::zeros((j.shape()[0], u.shape()[0]));
+
+    for (jac, mut row) in j.outer_iter().zip(out.rows_mut()) {
+        let data = Array1::from_vec(d.iter().zip(jac.iter()).map(|(&x, &y)| -2.0 * (x.re*y.re + x.im*y.im)).collect());
+        row.assign(&data);
+    }
+    out.reversed_axes()
+}
+
 
 pub fn matrix_distance_squared(a: ArrayView2<c64>, b: ArrayView2<c64>) -> f64 {
     // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]

@@ -1,10 +1,10 @@
-use ndarray::Array2;
+use ndarray::{Array2, Array1};
 use ndarray_linalg::c64;
 
 use crate::{
     ir::circuit::Circuit,
     ir::gates::{Gradient, Unitary},
-    utils::{matrix_distance_squared, matrix_residuals, matrix_residuals_jac},
+    utils::{matrix_distance_squared, matrix_residuals, matrix_residuals_jac, state_infidelity, state_residuals, state_residuals_jac},
 };
 
 use enum_dispatch::enum_dispatch;
@@ -111,7 +111,67 @@ impl DifferentiableResidualFn for HilbertSchmidtResidualFn {
     }
 }
 
+#[derive(Clone)]
+pub struct HilbertSchmidtStateResidualFn {
+    circ: Circuit,
+    target: Array1<c64>,
+    eye: Array2<f64>,
+}
+
+impl HilbertSchmidtStateResidualFn {
+    pub fn new(circ: Circuit, target: Array1<c64>) -> Self {
+        let size = target.shape()[0];
+        HilbertSchmidtStateResidualFn {
+            circ,
+            target,
+            eye: Array2::eye(size),
+        }
+    }
+
+    pub fn is_sendable(&self) -> bool {
+        self.circ.is_sendable()
+    }
+}
+
+impl CostFn for HilbertSchmidtStateResidualFn {
+    fn get_cost(&self, params: &[f64]) -> f64 {
+        let calculated = self.circ.get_state(params, &self.circ.constant_gates);
+        state_infidelity(self.target.view(), calculated.view())
+    }
+}
+
+impl ResidualFn for HilbertSchmidtStateResidualFn {
+    fn get_residuals(&self, params: &[f64]) -> Vec<f64> {
+        let m = self.circ.get_state(params, &self.circ.constant_gates);
+        state_residuals(self.target.view(), m.view())
+    }
+
+    fn num_residuals(&self) -> usize {
+        self.target.len()
+    }
+}
+
+impl DifferentiableResidualFn for HilbertSchmidtStateResidualFn {
+    fn get_grad(&self, params: &[f64]) -> Array2<f64> {
+        let (m, j) = self
+            .circ
+            .get_state_and_grads(params, &self.circ.constant_gates);
+        state_residuals_jac(self.target.view(), m.view(), j.view())
+    }
+
+    fn get_residuals_and_grad(&self, params: &[f64]) -> (Vec<f64>, Array2<f64>) {
+        let (m, j) = self
+            .circ
+            .get_state_and_grads(params, &self.circ.constant_gates);
+        (
+            state_residuals(self.target.view(), m.view()),
+            state_residuals_jac(self.target.view(), m.view(), j.view())
+        )
+    }
+}
+
 pub enum ResidualFunction {
+    HilbertSchmidtState(Box<HilbertSchmidtStateResidualFn>),
     HilbertSchmidt(Box<HilbertSchmidtResidualFn>),
     Dynamic(Box<dyn DifferentiableResidualFn>),
 }
@@ -119,6 +179,7 @@ pub enum ResidualFunction {
 impl ResidualFunction {
     pub fn is_sendable(&self) -> bool {
         match self {
+            ResidualFunction::HilbertSchmidtState(hs) => hs.is_sendable(),
             ResidualFunction::HilbertSchmidt(hs) => hs.is_sendable(),
             ResidualFunction::Dynamic(_) => false,
         }
@@ -128,6 +189,7 @@ impl ResidualFunction {
 impl CostFn for ResidualFunction {
     fn get_cost(&self, params: &[f64]) -> f64 {
         match self {
+            Self::HilbertSchmidtState(hs) => hs.get_cost(params),
             Self::HilbertSchmidt(hs) => hs.get_cost(params),
             Self::Dynamic(d) => d.get_cost(params),
         }
@@ -137,6 +199,7 @@ impl CostFn for ResidualFunction {
 impl ResidualFn for ResidualFunction {
     fn get_residuals(&self, params: &[f64]) -> Vec<f64> {
         match self {
+            Self::HilbertSchmidtState(hs) => hs.get_residuals(params),
             Self::HilbertSchmidt(hs) => hs.get_residuals(params),
             Self::Dynamic(d) => d.get_residuals(params),
         }
@@ -144,6 +207,7 @@ impl ResidualFn for ResidualFunction {
 
     fn num_residuals(&self) -> usize {
         match self {
+            Self::HilbertSchmidtState(hs) => hs.num_residuals(),
             Self::HilbertSchmidt(hs) => hs.num_residuals(),
             Self::Dynamic(d) => d.num_residuals(),
         }
@@ -153,6 +217,7 @@ impl ResidualFn for ResidualFunction {
 impl DifferentiableResidualFn for ResidualFunction {
     fn get_grad(&self, params: &[f64]) -> Array2<f64> {
         match self {
+            Self::HilbertSchmidtState(hs) => hs.get_grad(params),
             Self::HilbertSchmidt(hs) => hs.get_grad(params),
             Self::Dynamic(d) => d.get_grad(params),
         }
@@ -160,6 +225,7 @@ impl DifferentiableResidualFn for ResidualFunction {
 
     fn get_residuals_and_grad(&self, params: &[f64]) -> (Vec<f64>, Array2<f64>) {
         match self {
+            Self::HilbertSchmidtState(hs) => hs.get_residuals_and_grad(params),
             Self::HilbertSchmidt(hs) => hs.get_residuals_and_grad(params),
             Self::Dynamic(d) => d.get_residuals_and_grad(params),
         }

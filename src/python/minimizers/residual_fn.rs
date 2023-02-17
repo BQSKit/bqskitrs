@@ -1,7 +1,7 @@
 use crate::{
     ir::circuit::Circuit,
     ir::inst::minimizers::{
-        CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction,
+        CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction, HilbertSchmidtStateResidualFn,
     },
 };
 use ndarray::Array2;
@@ -88,7 +88,7 @@ impl DifferentiableResidualFn for PyResidualFn {
     module = "bqskitrs"
 )]
 pub struct PyHilberSchmidtResidualFn {
-    cost_fn: HilbertSchmidtResidualFn,
+    cost_fn: ResidualFunction,
 }
 
 #[pymethods]
@@ -98,21 +98,27 @@ impl PyHilberSchmidtResidualFn {
         let cls = target_matrix.getattr("__class__")?;
         let dunder_name = cls.getattr("__name__")?;
         let name = dunder_name.extract::<&str>()?;
-        let target = match name {
+        let costfn = match name {
             "UnitaryMatrix" => {
                 let np = target_matrix
                     .getattr("numpy")?
                     .extract::<&PyArray2<c64>>()?;
-                np.to_owned_array()
+                ResidualFunction::HilbertSchmidt(Box::new(HilbertSchmidtResidualFn::new(circ, np.to_owned_array())))
             }
-            "ndarray" => target_matrix
-                .extract::<&PyArray2<c64>>()?
-                .to_owned_array(),
+            "StateVector" => {
+                let np = target_matrix
+                    .getattr("numpy")?
+                    .extract::<&PyArray1<c64>>()?;
+                ResidualFunction::HilbertSchmidtState(Box::new(HilbertSchmidtStateResidualFn::new(circ, np.to_owned_array())))
+            }
+            "ndarray" => {
+                let np = target_matrix
+                    .extract::<&PyArray2<c64>>()?;
+                ResidualFunction::HilbertSchmidt(Box::new(HilbertSchmidtResidualFn::new(circ, np.to_owned_array())))
+            }
             _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
         };
-        Ok(PyHilberSchmidtResidualFn {
-            cost_fn: HilbertSchmidtResidualFn::new(circ, target),
-        })
+        Ok(PyHilberSchmidtResidualFn {cost_fn: costfn})
     }
 
     pub fn __call__(&self, py: Python, params: Vec<f64>) -> Vec<f64> {
@@ -161,9 +167,14 @@ impl<'source> FromPyObject<'source> for ResidualFunction {
         let gil = Python::acquire_gil();
         let py = gil.python();
         match ob.extract::<Py<PyHilberSchmidtResidualFn>>() {
-            Ok(fun) => Ok(ResidualFunction::HilbertSchmidt(Box::new(
-                fun.try_borrow(py)?.cost_fn.clone(),
-            ))),
+            Ok(fun) => {
+                let costfn = &fun.try_borrow(py)?.cost_fn;
+                match costfn {
+                    ResidualFunction::HilbertSchmidt(hs) => Ok(ResidualFunction::HilbertSchmidt(hs.clone())),
+                    ResidualFunction::HilbertSchmidtState(hs) => Ok(ResidualFunction::HilbertSchmidtState(hs.clone())),
+                    _ => panic!("Unexpected dynamic cost function."),
+                }
+            },
             Err(..) => {
                 if is_cost_fn_obj(ob)? {
                     let fun = PyResidualFn::new(ob.into());

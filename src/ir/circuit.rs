@@ -86,7 +86,8 @@ impl Circuit {
     }
 
     pub fn get_state(&self, params: &[f64], const_gates: &[Array2<c64>]) -> Array1<c64> {
-        let zero = Array1::zeros((self.dim,));
+        let mut zero = Array1::zeros((self.dim,));
+        zero[0] = c64::new(1.0, 0.0);
         self.get_utry(params, const_gates).dot(&zero.view())
         // TODO: Calculate state via Matrix-Vector vs Matrix-Matrix mul
     }

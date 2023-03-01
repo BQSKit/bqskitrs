@@ -48,7 +48,6 @@ pub fn state_infidelity_jac(u: ArrayView1<c64>, m: ArrayView1<c64>, j: ArrayView
     let d = state_dot(u, m);
     let infidelity = 1.0 - d.norm().powi(2);
     let d_infidelity = j.outer_iter().map(|dv| {let dd = state_dot(u, dv); -2.0 * (d.re * dd.re + d.im * dd.im)}).collect();
-    println!("\n{:?}\n\n{:?}", infidelity, d_infidelity);
     (infidelity, d_infidelity)
 }
 

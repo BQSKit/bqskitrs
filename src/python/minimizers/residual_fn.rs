@@ -1,7 +1,7 @@
 use crate::{
     ir::circuit::Circuit,
     ir::inst::minimizers::{
-        CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction, HilbertSchmidtStateResidualFn,
+        CostFn, DifferentiableResidualFn, HilbertSchmidtResidualFn, ResidualFn, ResidualFunction, HilbertSchmidtStateResidualFn, HilbertSchmidtSystemResidualFn,
     },
 };
 use ndarray::Array2;
@@ -111,6 +111,13 @@ impl PyHilberSchmidtResidualFn {
                     .extract::<&PyArray1<c64>>()?;
                 ResidualFunction::HilbertSchmidtState(Box::new(HilbertSchmidtStateResidualFn::new(circ, np.to_owned_array())))
             }
+            "StateSystem" => {
+                let np = target_matrix
+                    .getattr("target")?
+                    .extract::<&PyArray2<c64>>()?;
+                let vec_count = target_matrix.getattr("_vec_count")?.extract::<u32>()?;
+                ResidualFunction::HilbertSchmidtSystem(Box::new(HilbertSchmidtSystemResidualFn::new(circ, np.to_owned_array(), vec_count)))
+            }
             "ndarray" => {
                 let np = target_matrix
                     .extract::<&PyArray2<c64>>()?;
@@ -172,6 +179,7 @@ impl<'source> FromPyObject<'source> for ResidualFunction {
                 match costfn {
                     ResidualFunction::HilbertSchmidt(hs) => Ok(ResidualFunction::HilbertSchmidt(hs.clone())),
                     ResidualFunction::HilbertSchmidtState(hs) => Ok(ResidualFunction::HilbertSchmidtState(hs.clone())),
+                    ResidualFunction::HilbertSchmidtSystem(hs) => Ok(ResidualFunction::HilbertSchmidtSystem(hs.clone())),
                     _ => panic!("Unexpected dynamic cost function."),
                 }
             },

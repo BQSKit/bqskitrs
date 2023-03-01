@@ -76,6 +76,12 @@ impl PyHilberSchmidtCostFn {
                     .extract::<&PyArray1<c64>>()?;
                 CostFunction::HilbertSchmidtState(HilbertSchmidtStateCostFn::new(circ, np.to_owned_array()))
             }
+            "StateSystem" => {
+                let np = target_matrix
+                    .getattr("target")?
+                    .extract::<&PyArray2<c64>>()?;
+                CostFunction::HilbertSchmidt(HilbertSchmidtCostFn::new(circ, np.to_owned_array()))
+            }
             "ndarray" => {
                 let np = target_matrix
                     .extract::<&PyArray2<c64>>()?;

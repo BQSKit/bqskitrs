@@ -31,6 +31,8 @@ jobs:
           manylinux: auto
           args: --release --features=openblas
           docker-options: -e OPENBLAS_ARGS="DYNAMIC_ARCH=1"
+          before-script-linux: |
+            yum install -y cmake3 eigen3-devel llvm-toolset-7 openssl-devel
         # run: >
         #   docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
         #   edyounis/bqskitrs-manylinux:1.2 build  --release

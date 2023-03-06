@@ -16,7 +16,6 @@ openblas = [
     "openblas-src",
     "openblas-src/static",
     "ndarray-linalg/openblas-static",
-    "openssl",
 ]
 accelerate = [
     "accelerate-src",
@@ -27,7 +26,6 @@ mkl = [
 ]
 
 [dependencies]
-openssl = { version = "0.10", features = ["vendored"], optional = true }  # Needed for openblas
 ndarray = { version = "0.15.6", features = ["blas"] }
 ndarray-linalg = "0.16.0"
 

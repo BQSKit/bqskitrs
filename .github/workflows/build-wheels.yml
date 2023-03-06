@@ -22,7 +22,7 @@ jobs:
       - name: Build Manylinux Wheels
         run: >
           docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
-          edyounis/bqskitrs-manylinux:1.1 build  --release
+          edyounis/bqskitrs-manylinux:1.2 build  --release
           --features=openblas --compatibility=manylinux2014
       
       - name: Upload Wheel Artifacts
@@ -44,7 +44,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       
       - name: Install Python Dependencies
         run: pip install -U setuptools wheel maturin
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.8'
+          python-version: '3.11'
       
       - name: Install Python Dependencies
         run: pip install -U setuptools wheel maturin

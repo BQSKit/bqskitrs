@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "maturin>=0.13,<0.15",
+    "maturin>=0.14,<0.15",
     "wheel",
     "oldest-supported-numpy",
 ]
@@ -8,7 +8,7 @@ build-backend = "maturin"
 
 [project]
 name = "bqskitrs"
-version = "0.4.0a1"
+version = "0.4.0a2"
 maintainers = [
     {name = "Ethan Smith", email = "ethanhs@lbl.gov"},
     {name = "Ed Younis", email = "edyounis@lbl.gov"},

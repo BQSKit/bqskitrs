@@ -19,6 +19,11 @@ jobs:
         with:
           submodules: 'recursive'
       
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+          architecture: x64
+      
       - name: Build Manylinux Wheels
         uses: PyO3/maturin-action@v1
         with:

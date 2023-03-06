@@ -20,10 +20,16 @@ jobs:
           submodules: 'recursive'
       
       - name: Build Manylinux Wheels
-        run: >
-          docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
-          edyounis/bqskitrs-manylinux:1.2 build  --release
-          --features=openblas --compatibility=manylinux2014
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          manylinux: auto
+          args: --release --features=openblas
+          docker-options: -e OPENBLAS_ARGS="DYNAMIC_ARCH=1"
+        # run: >
+        #   docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
+        #   edyounis/bqskitrs-manylinux:1.2 build  --release
+        #   --features=openblas --compatibility=manylinux2014
       
       - name: Upload Wheel Artifacts
         uses: actions/upload-artifact@v3

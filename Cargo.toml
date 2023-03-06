@@ -16,6 +16,8 @@ openblas = [
     "openblas-src",
     "openblas-src/static",
     "ndarray-linalg/openblas-static",
+    "openssl",
+    "openssl/vendored",
 ]
 accelerate = [
     "accelerate-src",
@@ -32,6 +34,7 @@ ndarray-linalg = "0.16.0"
 openblas-src = { version = "0.10.5", optional = true }
 accelerate-src = { version = "0.3.2", optional = true }
 intel-mkl-src = { version = "0.8.1", optional = true }
+openssl = { version = "0.10", optional = true }  # Needed for openblas
 
 ndarray_einsum_beta = "0.7.0"
 nlopt = "0.6.0"

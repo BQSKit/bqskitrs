@@ -28,7 +28,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: x86_64
-          manylinux: auto
+          manylinux: 2014
           args: --release --features=openblas
           docker-options: -e OPENBLAS_ARGS="DYNAMIC_ARCH=1"
           before-script-linux: |

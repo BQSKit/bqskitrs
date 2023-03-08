@@ -30,7 +30,7 @@ jobs:
           target: x86_64
           manylinux: 2014
           args: --release --features=openblas
-          docker-options: -e OPENBLAS_ARGS="DYNAMIC_ARCH=1"
+          docker-options: -e DYNAMIC_ARCH=1
           before-script-linux: |
             yum install -y cmake3 eigen3-devel llvm-toolset-7 openssl-devel
         # run: >

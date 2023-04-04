@@ -80,8 +80,8 @@ pub fn matrix_distance_squared_jac(
     let size = u.shape()[0];
     let s = u.multiply(&m.conj().view()).sum();
     let dsq = 1f64 - s.norm() / size as f64;
-    if s == r!(0.0) {
-        return (dsq, vec![std::f64::INFINITY; j.len()]);
+    if s.norm() == 0.0 {
+        return (dsq, vec![std::f64::INFINITY; j.shape()[0]]);
     }
     let jus: Vec<c64> = j
         .outer_iter()

@@ -33,10 +33,6 @@ jobs:
           docker-options: -e DYNAMIC_ARCH=1
           before-script-linux: |
             yum install -y cmake3 eigen3-devel llvm-toolset-7 openssl-devel
-        # run: >
-        #   docker run -e OPENBLAS_ARGS="DYNAMIC_ARCH=1" --rm -v $(pwd):/io
-        #   edyounis/bqskitrs-manylinux:1.2 build  --release
-        #   --features=openblas --compatibility=manylinux2014
       
       - name: Upload Wheel Artifacts
         uses: actions/upload-artifact@v3
@@ -124,7 +120,7 @@ jobs:
         run: brew install gcc ceres-solver eigen lapack
       
       - name: Build macOS x86_64 Wheels
-        run: MACOSX_DEPLOYMENT_TARGET=11.0 maturin build --features="accelerate" --release --target x86_64-apple-darwin
+        run: MACOSX_DEPLOYMENT_TARGET=10.9 maturin build --features="accelerate" --release --target x86_64-apple-darwin
       
       - name: Build macOS aarch64 Wheels
         run: maturin build --features="accelerate" --release --target aarch64-apple-darwin

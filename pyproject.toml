@@ -8,7 +8,7 @@ build-backend = "maturin"
 
 [project]
 name = "bqskitrs"
-version = "0.4.0rc3"
+version = "0.4.0rc4"
 maintainers = [
     {name = "Ethan Smith", email = "ethanhs@lbl.gov"},
     {name = "Ed Younis", email = "edyounis@lbl.gov"},

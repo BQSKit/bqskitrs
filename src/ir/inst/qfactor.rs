@@ -120,15 +120,18 @@ impl Instantiate for QFactorInstantiator {
         let mut dist2 = 0.0f64;
 
         let mut it = 0usize;
+        // println!("Starting qfactor rust.");
 
         loop {
             if it > self.min_iters {
                 let diff_tol = self.diff_tol_a + self.diff_tol_r * dist1.abs();
                 if (dist1 - dist2).abs() <= diff_tol {
+                    // println!("Plateau'd on iteration: {}", it);
                     break;
                 }
 
                 if it > self.max_iters {
+                    // println!("Max Iters on iteration: {}", it);
                     break;
                 }
             }
@@ -139,9 +142,11 @@ impl Instantiate for QFactorInstantiator {
 
             dist2 = dist1;
             dist1 = unitary_builder.get_utry().trace().unwrap().norm();
-            dist1 = 1. - (dist1 / 2f64.powi(circuit.size as i32));
+            dist1 = 1. - (dist1 / circuit.dim as f64);
+            // println!("New C1 is {} in iteration {}", dist1, it);
 
             if dist1 < self.dist_tol {
+                // println!("Reached dist tol on iteration: {}", it);
                 return circuit.get_params();
             }
 

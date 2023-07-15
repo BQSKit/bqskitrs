@@ -1,6 +1,6 @@
 use crate::{
     ir::circuit::Circuit,
-    ir::inst::minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn, HilbertSchmidtStateCostFn},
+    ir::inst::minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn, HilbertSchmidtStateCostFn, HilbertSchmidtSystemCostFn},
 };
 use ndarray_linalg::c64;
 use numpy::{PyArray1, PyArray2};
@@ -80,7 +80,8 @@ impl PyHilberSchmidtCostFn {
                 let np = target_matrix
                     .getattr("target")?
                     .extract::<&PyArray2<c64>>()?;
-                CostFunction::HilbertSchmidt(HilbertSchmidtCostFn::new(circ, np.to_owned_array()))
+                let vec_count = target_matrix.getattr("_vec_count")?.extract::<u32>()?;
+                CostFunction::HilbertSchmidtSystem(HilbertSchmidtSystemCostFn::new(circ, np.to_owned_array(), vec_count))
             }
             "ndarray" => {
                 let np = target_matrix
@@ -132,6 +133,7 @@ impl<'source> FromPyObject<'source> for CostFunction {
                 match costfn {
                     CostFunction::HilbertSchmidt(hs) => Ok(CostFunction::HilbertSchmidt(hs.clone())),
                     CostFunction::HilbertSchmidtState(hs) => Ok(CostFunction::HilbertSchmidtState(hs.clone())),
+                    CostFunction::HilbertSchmidtSystem(hs) => Ok(CostFunction::HilbertSchmidtSystem(hs.clone())),
                     _ => panic!("Unexpected dynamic cost function."),
                 }
             },

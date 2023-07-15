@@ -203,7 +203,7 @@ impl CostFn for HilbertSchmidtSystemResidualFn {
         let b = calculated.view();
         let prod = einsum("ij,ij->", &[&a, &b.conj()]).unwrap();
         let norm = prod.sum().norm() / self.vec_count as f64;
-        (1f64 - norm) / 100.0  // TODO: Numerical precision issue
+        1f64 - norm
     }
 }
 

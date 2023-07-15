@@ -94,6 +94,37 @@ pub fn matrix_distance_squared_jac(
     (dsq, jacs)
 }
 
+pub fn matrix_distance_system_squared(a: ArrayView2<c64>, b: ArrayView2<c64>, vec_count: u32) -> f64 {
+    // 1 - np.abs(np.trace(np.dot(A,B.H))) / A.shape[0]
+    // converted to
+    // 1 - np.abs(np.sum(np.multiply(A,np.conj(B)))) / A.shape[0]
+    let prod = einsum("ij,ij->", &[&a, &b.conj()]).unwrap();
+    let norm = prod.sum().norm();
+    1f64 - norm / vec_count as f64
+}
+
+pub fn matrix_distance_system_squared_jac(
+    u: ArrayView2<c64>,
+    m: ArrayView2<c64>,
+    j: ArrayView3<c64>,
+    vec_count: u32,
+) -> (f64, Vec<f64>) {
+    let s = u.multiply(&m.conj().view()).sum();
+    let dsq = 1f64 - s.norm() / vec_count as f64;
+    if s.norm() == 0.0 {
+        return (dsq, vec![std::f64::INFINITY; j.shape()[0]]);
+    }
+    let jus: Vec<c64> = j
+        .outer_iter()
+        .map(|ji| einsum("ij,ij->", &[&u, &ji.conj()]).unwrap().sum())
+        .collect();
+    let jacs = jus
+        .iter()
+        .map(|jusi| -(jusi.re * s.re + jusi.im * s.im) / (vec_count as f64 * s.norm()))
+        .collect();
+    (dsq, jacs)
+}
+
 /// Calculates the residuals
 pub fn matrix_residuals(
     a_matrix: &Array2<c64>,

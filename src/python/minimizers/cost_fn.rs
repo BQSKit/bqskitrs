@@ -1,6 +1,6 @@
 use crate::{
     ir::circuit::Circuit,
-    ir::inst::minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn},
+    ir::inst::minimizers::{CostFn, CostFunction, DifferentiableCostFn, HilbertSchmidtCostFn, HilbertSchmidtStateCostFn, HilbertSchmidtSystemCostFn},
 };
 use ndarray_linalg::c64;
 use numpy::{PyArray1, PyArray2};
@@ -53,7 +53,7 @@ impl DifferentiableCostFn for PyCostFn {
     module = "bqskitrs"
 )]
 pub struct PyHilberSchmidtCostFn {
-    cost_fn: HilbertSchmidtCostFn,
+    cost_fn: CostFunction,
 }
 
 #[pymethods]
@@ -63,21 +63,34 @@ impl PyHilberSchmidtCostFn {
         let cls = target_matrix.getattr("__class__")?;
         let dunder_name = cls.getattr("__name__")?;
         let name = dunder_name.extract::<&str>()?;
-        let target = match name {
+        let costfn = match name {
             "UnitaryMatrix" => {
                 let np = target_matrix
                     .getattr("numpy")?
                     .extract::<&PyArray2<c64>>()?;
-                np.to_owned_array()
+                CostFunction::HilbertSchmidt(HilbertSchmidtCostFn::new(circ, np.to_owned_array()))
             }
-            "ndarray" => target_matrix
-                .extract::<&PyArray2<c64>>()?
-                .to_owned_array(),
+            "StateVector" => {
+                let np = target_matrix
+                    .getattr("numpy")?
+                    .extract::<&PyArray1<c64>>()?;
+                CostFunction::HilbertSchmidtState(HilbertSchmidtStateCostFn::new(circ, np.to_owned_array()))
+            }
+            "StateSystem" => {
+                let np = target_matrix
+                    .getattr("target")?
+                    .extract::<&PyArray2<c64>>()?;
+                let vec_count = target_matrix.getattr("_vec_count")?.extract::<u32>()?;
+                CostFunction::HilbertSchmidtSystem(HilbertSchmidtSystemCostFn::new(circ, np.to_owned_array(), vec_count))
+            }
+            "ndarray" => {
+                let np = target_matrix
+                    .extract::<&PyArray2<c64>>()?;
+                CostFunction::HilbertSchmidt(HilbertSchmidtCostFn::new(circ, np.to_owned_array()))
+            }
             _ => panic!("HilbertSchmidtCost only takes numpy arrays or UnitaryMatrix types."),
         };
-        Ok(PyHilberSchmidtCostFn {
-            cost_fn: HilbertSchmidtCostFn::new(circ, target),
-        })
+        Ok(PyHilberSchmidtCostFn {cost_fn: costfn})
     }
 
     pub fn __call__(&self, py: Python, params: Vec<f64>) -> f64 {
@@ -115,9 +128,15 @@ impl<'source> FromPyObject<'source> for CostFunction {
         let gil = Python::acquire_gil();
         let py = gil.python();
         match ob.extract::<Py<PyHilberSchmidtCostFn>>() {
-            Ok(fun) => Ok(CostFunction::HilbertSchmidt(
-                fun.try_borrow(py)?.cost_fn.clone(),
-            )),
+            Ok(fun) => {
+                let costfn = &fun.try_borrow(py)?.cost_fn;
+                match costfn {
+                    CostFunction::HilbertSchmidt(hs) => Ok(CostFunction::HilbertSchmidt(hs.clone())),
+                    CostFunction::HilbertSchmidtState(hs) => Ok(CostFunction::HilbertSchmidtState(hs.clone())),
+                    CostFunction::HilbertSchmidtSystem(hs) => Ok(CostFunction::HilbertSchmidtSystem(hs.clone())),
+                    _ => panic!("Unexpected dynamic cost function."),
+                }
+            },
             Err(..) => {
                 if is_cost_fn_obj(ob)? {
                     let fun = PyCostFn::new(ob.into());

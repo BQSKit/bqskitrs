@@ -4,7 +4,7 @@ use super::Operation;
 use itertools::Itertools;
 
 use itertools::izip;
-use ndarray::{Array2, Array3, ArrayD, ArrayView2, Ix2};
+use ndarray::{Array2, Array3, ArrayD, ArrayView2, Ix2, Array1};
 use ndarray_linalg::c64;
 use crate::squaremat::*;
 use crate::permutation_matrix::calc_permutation_matrix;
@@ -83,6 +83,30 @@ impl Circuit {
             op.params.copy_from_slice(parameters);
             param_idx += op.num_params();
         }
+    }
+
+    pub fn get_state(&self, params: &[f64], const_gates: &[Array2<c64>]) -> Array1<c64> {
+        let mut zero = Array1::zeros((self.dim,));
+        zero[0] = c64::new(1.0, 0.0);
+        self.get_utry(params, const_gates).dot(&zero.view())
+        // TODO: Calculate state via Matrix-Vector vs Matrix-Matrix mul
+    }
+
+    pub fn get_state_and_grads(&self, params: &[f64], const_gates: &[Array2<c64>]) -> (Array1<c64>, Array2<c64>) {
+        let mut zero = Array1::zeros((self.dim,));
+        zero[0] = c64::new(1.0, 0.0);
+        let (utry, grads) = self.get_utry_and_grad(params, const_gates);
+        let state = utry.dot(&zero.view());
+        
+        let mut out_grad = Array2::zeros((
+            params.len(),
+            self.dim,
+        ));
+
+        for (mut arr, grad) in out_grad.outer_iter_mut().zip(grads.outer_iter()) {
+            arr.assign(&grad.dot(&zero.view()));
+        }
+        (state, out_grad)
     }
 }
 

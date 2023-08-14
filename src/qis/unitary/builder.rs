@@ -148,12 +148,19 @@ impl UnitaryBuilder {
             Some(t) => t.clone().permuted_axes(perm),
             None => panic!("Tensor was unexpectedly None."),
         };
+
+        let right_dim = location
+            .iter()
+            .map(|&idx| self.get_current_shape()[idx])
+            .product();
+        let left_dim = self.dim / right_dim;
+
         let reshaped = a
             .to_shape([
-                2usize.pow(self.num_qudits as u32 - location.len() as u32),
-                2usize.pow(self.num_qudits as u32 - location.len() as u32),
-                2usize.pow(location.len() as u32),
-                2usize.pow(location.len() as u32),
+                left_dim,
+                left_dim,
+                right_dim,
+                right_dim,
             ])
             .expect("Failed to reshape in calc_env_matrix.");
         trace(reshaped.view())

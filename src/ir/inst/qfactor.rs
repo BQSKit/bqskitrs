@@ -139,7 +139,7 @@ impl Instantiate for QFactorInstantiator {
 
             dist2 = dist1;
             dist1 = unitary_builder.get_utry().trace().unwrap().norm();
-            dist1 = 1. - (dist1 / 2f64.powi(circuit.size as i32));
+            dist1 = 1. - (dist1 / circuit.dim as f64);
 
             if dist1 < self.dist_tol {
                 return circuit.get_params();

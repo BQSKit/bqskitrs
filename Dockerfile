@@ -2,7 +2,7 @@ FROM quay.io/pypa/manylinux2014_x86_64
 # This docker file is based on the official maturin docker file https://github.com/PyO3/maturin/blob/master/Dockerfile
 ENV PATH /root/.cargo/bin:$PATH
 # Add all supported python versions
-ENV PATH /opt/python/cp38-cp38/bin/:/opt/python/cp39-cp39/bin/:/opt/python/cp310-cp310/bin/:$PATH
+ENV PATH /opt/python/cp38-cp38/bin/:/opt/python/cp39-cp39/bin/:/opt/python/cp310-cp310/bin/:/opt/python/cp311-cp311/bin/:$PATH
 # Otherwise `cargo new` errors
 ENV USER root
 
@@ -20,6 +20,10 @@ RUN cargo rustc --bin maturin --manifest-path /maturin/Cargo.toml -- -C link-arg
     && rm -rf /maturin
 
 RUN yum install -y git cmake3 eigen3-devel llvm-toolset-7 && \
+    yum clean all && \
+    rm -rf /var/cache/yum
+
+RUN yum install -y openssl openssl-libs openssl-devel && \
     yum clean all && \
     rm -rf /var/cache/yum
 

@@ -29,7 +29,7 @@ mkl = [
 ndarray = { version = "0.15.6", features = ["blas"] }
 ndarray-linalg = "0.16.0"
 
-openblas-src = { version = "0.10.5", optional = true }
+openblas-src = { version = "0.10", optional = true }
 accelerate-src = { version = "0.3.2", optional = true }
 intel-mkl-src = { version = "0.8.1", optional = true }
 

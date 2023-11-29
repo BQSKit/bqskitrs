@@ -36,34 +36,55 @@ fn pygate_to_native(pygate: &PyAny, constant_gates: &mut Vec<Array2<c64>>) -> Py
         "U2Gate" => Ok(U2Gate::new().into()),
         "U3Gate" => Ok(U3Gate::new().into()),
         "U8Gate" => Ok(U8Gate::new().into()),
+        "EmbeddedGate" => {
+            let egate = pygate.getattr("gate")?;
+            let egate_cls = egate.getattr("__class__")?;
+            let egate_dunder_name = egate_cls.getattr("__name__")?;
+            let egate_name = egate_dunder_name.extract::<&str>()?;
+
+            if egate_name == "RZGate" {
+                let level_maps = pygate.getattr("level_maps")?.extract::<Vec<Vec<usize>>>()?;
+                let level1 = level_maps[0][0];
+                let level2 = level_maps[0][1];
+                let radix = pygate.getattr("dim")?.extract::<usize>()?;
+                Ok(RZSubGate::new(radix, level1, level2).into())
+            } else {
+                extract_dynamic_gate(pygate, constant_gates, name)
+                // TODO: Generalize
+            }
+        },
         "VariableUnitaryGate" => {
             let size = pygate.getattr("num_qudits")?.extract::<usize>()?;
             let radixes = pygate.getattr("radixes")?.extract::<Vec<usize>>()?;
             Ok(VariableUnitaryGate::new(size, radixes).into())
-        }
+        },
         _ => {
-            if pygate.getattr("num_params")?.extract::<usize>()? == 0 {
-                let args: Vec<f64> = vec![];
-                let pyobj = pygate.call_method("get_unitary", (args,), None)?;
-                let pymat = pyobj.getattr("numpy")?.extract::<&PyArray2<c64>>()?;
-                let mat = pymat.to_owned_array();
-                let gate_size = pygate.getattr("num_qudits")?.extract::<usize>()?;
-                let index = constant_gates.len();
-                constant_gates.push(mat);
-                Ok(ConstantGate::new(index, gate_size).into())
-            } else if pygate.hasattr("get_unitary")?
-                && ((pygate.hasattr("get_grad")? && pygate.hasattr("get_unitary_and_grad")?)
-                    || pygate.hasattr("optimize")?)
-            {
-                let dynamic: Arc<dyn DynGate + Send + Sync> = Arc::new(PyGate::new(pygate.into()));
-                Ok(Gate::Dynamic(dynamic))
-            } else {
-                Err(exceptions::PyValueError::new_err(format!(
-                    "Gate {} does not implement the necessary methods for optimization.",
-                    name
-                )))
-            }
+            extract_dynamic_gate(pygate, constant_gates, name)
         }
+    }
+}
+
+fn extract_dynamic_gate(pygate: &PyAny, constant_gates: &mut Vec<Array2<c64>>, name: &str) -> Result<Gate, PyErr> {
+    if pygate.getattr("num_params")?.extract::<usize>()? == 0 {
+        let args: Vec<f64> = vec![];
+        let pyobj = pygate.call_method("get_unitary", (args,), None)?;
+        let pymat = pyobj.getattr("numpy")?.extract::<&PyArray2<c64>>()?;
+        let mat = pymat.to_owned_array();
+        let gate_size = pygate.getattr("num_qudits")?.extract::<usize>()?;
+        let index = constant_gates.len();
+        constant_gates.push(mat);
+        Ok(ConstantGate::new(index, gate_size).into())
+    } else if pygate.hasattr("get_unitary")?
+        && ((pygate.hasattr("get_grad")? && pygate.hasattr("get_unitary_and_grad")?)
+            || pygate.hasattr("optimize")?)
+    {
+        let dynamic: Arc<dyn DynGate + Send + Sync> = Arc::new(PyGate::new(pygate.into()));
+        Ok(Gate::Dynamic(dynamic))
+    } else {
+        Err(exceptions::PyValueError::new_err(format!(
+            "Gate {} does not implement the necessary methods for optimization.",
+            name
+        )))
     }
 }
 

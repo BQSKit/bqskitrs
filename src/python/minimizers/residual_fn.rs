@@ -143,6 +143,10 @@ impl PyHilberSchmidtResidualFn {
         self.cost_fn.get_residuals(&params)
     }
 
+    pub fn num_residuals(&self, _py: Python) -> usize {
+        self.cost_fn.num_residuals()
+    }
+
     pub fn get_grad(&self, py: Python, params: Vec<f64>) -> Py<PyArray2<f64>> {
         PyArray2::from_array(py, &self.cost_fn.get_grad(&params)).to_owned()
     }

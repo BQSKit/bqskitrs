@@ -52,11 +52,14 @@ impl ResidualFn for PyResidualFn {
         let py = gil.python();
         let parameters = PyArray1::from_slice(py, params);
         let args = PyTuple::new(py, &[parameters]);
-        match self.cost_fn.call_method1(py, "get_cost", args) {
+        match self.cost_fn.call_method1(py, "get_residuals", args) {
             Ok(val) => val
                 .extract::<Vec<f64>>(py)
-                .expect("Return type of get_cost was not a sequence of floats."),
-            Err(..) => panic!("Failed to call 'get_cost' on passed ResidualFunction."), // TODO: make a Python exception?
+                .expect("Return type of get_residuals was not a sequence of floats."),
+            Err(e) => {
+                println!("{:?}, {:?}, {:?}", e.get_type(py), e.value(py), e.traceback(py));
+                panic!("Failed to call 'get_residuals' on passed ResidualFunction."); // TODO: make a Python exception?
+            },
         }
     }
 }

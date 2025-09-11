@@ -29,4 +29,4 @@ RUN yum install -y openssl openssl-libs openssl-devel && \
 
 WORKDIR /io
 
-# ENTRYPOINT ["/usr/bin/maturin"]
+ENTRYPOINT ["/usr/bin/maturin"]
